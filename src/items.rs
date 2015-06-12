@@ -1,4 +1,4 @@
-use traits;
+use traits::{Breakable, Describable};
 
 pub enum Item<'a> {
     Key { name: &'a str, description: &'a str, id: u32 },
@@ -6,7 +6,7 @@ pub enum Item<'a> {
     FragileItem { name: &'a str, description: &'a str, broken: bool, break_msg: &'a str, broken_desc: &'a str }
 }
 
-impl<'a> traits::Describable for Item<'a> {
+impl<'a> Describable for Item<'a> {
     fn name(&self) -> () {
         match self {
             &Item::Key{ name: ref name, .. } => printer(name),
@@ -24,7 +24,7 @@ impl<'a> traits::Describable for Item<'a> {
     }
 }
 
-impl<'a> traits::Breakable for Item<'a> {
+impl<'a> Breakable for Item<'a> {
     fn destroy(&mut self) -> () {
         match *self {
             Item::FragileItem{ break_msg: ref msg, broken: ref mut broken, ..} => {

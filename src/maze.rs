@@ -3,10 +3,13 @@ extern crate std;
 
 use rand::Rng;
 use std::cmp;
+use items;
+use containers;
+use traits::{Describable, Searchable, Breakable};
 
-pub struct Maze {
+pub struct Maze<'a> {
     start: InitialRoom,
-    maze : MazePath
+    maze : MazePath<'a>
 }
 
 pub struct Door {
@@ -18,20 +21,21 @@ pub struct Exit {
 }
 
 pub struct InitialRoom;
-//    exit    : Door, 
-//}
 
-pub enum MazePath{
+pub enum MazePath<'a> {
     Room {
         door: Door,
+        containers: Vec<containers::Container<'a>>
     },
     Connector {
         door: Door,
-        other_rooms: Vec<MazePath>
+        other_rooms: Vec<MazePath<'a>>,
+        containers: Vec<containers::Container<'a>>
     },
     Exit {
         entrance: Door,
         exit: Exit,
+        containers: Vec<containers::Container<'a>>
     }
 }
 
@@ -59,19 +63,19 @@ impl Door {
     }
 }
 
-impl MazePath {
-    fn new(additional_rooms: u32) -> MazePath {
+impl<'a> MazePath<'a> {
+    fn new(additional_rooms: u32) -> MazePath<'a> {
         let max_rooms_attached = 3;
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build(additional_rooms: u32, exit_here: bool, max_rooms_attached: &u32) -> MazePath {
+        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32) -> MazePath<'b> {
             if additional_rooms == 0 {
                 if exit_here {
                     println!("Exit here!");
-                    MazePath::Exit{ entrance: Door::new(), exit: Exit::new() }
+                    MazePath::Exit{ entrance: Door::new(), exit: Exit::new(), containers: vec![] } // update when container generator is ready
                 }
                 else {
                     println!("made a room");
-                    MazePath::Room { door: Door::new() }
+                    MazePath::Room { door: Door::new(), containers: vec![] }
                 }
             }
             else {
@@ -81,7 +85,7 @@ impl MazePath {
                 let mut rooms_left = additional_rooms - attached_room_count;
                 let mut rooms_here = 0;
                 
-                MazePath::Connector{ door: Door::new(), other_rooms: {
+                MazePath::Connector{ door: Door::new(), containers: vec![], other_rooms: {
                     let mut rooms = vec![];
                     println!("Attached room count: {}", attached_room_count);
                     for room_num in (0..attached_room_count + 1) {
@@ -109,8 +113,25 @@ impl MazePath {
     
 }
 
-impl Maze {
-    pub fn new(num_rooms: u32) -> Maze {
+impl<'a> Searchable for MazePath<'a> {
+    fn search(&self) {
+        let containers = match *self {
+            MazePath::Room { containers: ref cs, .. } => cs,
+            MazePath::Connector { containers: ref cs, .. } => cs,
+            MazePath::Exit { containers: ref cs, .. } => cs
+        };
+        if containers.len() > 0 {
+            println!("The room contains various items")
+        }
+        for container in containers {
+            container.name()
+        }
+    }
+}
+
+impl<'a> Maze<'a> {
+    pub fn new(num_rooms: u32) -> Maze<'a> {
         Maze { start: InitialRoom, maze: MazePath::new(num_rooms) }
     }
 }
+

@@ -1,4 +1,4 @@
-use traits;
+use traits::{Searchable, Breakable, Describable};
 use items;
 
 pub enum Container<'a> {
@@ -8,7 +8,15 @@ pub enum Container<'a> {
     Bed { description: &'a str, item: items::Item<'a> },
 }
 
-impl<'a> traits::Describable for Container<'a> {
+pub struct Computer<'a> {
+    name: &'a str,
+    desc: &'a str,
+    password: &'a str,
+    hint_url: &'a str,
+    lock_opened: bool
+}
+
+impl<'a> Describable for Container<'a> {
     fn name(&self) {
         match *self {
             Container::DurableSmall{ name: ref name, .. } => items::printer(name),
@@ -30,7 +38,7 @@ impl<'a> traits::Describable for Container<'a> {
     }
 }
 
-impl<'a> traits::Breakable for Container<'a> {
+impl<'a> Breakable for Container<'a> {
     fn destroy(&mut self) {
         match *self {
             Container::FragileSmall { broken: ref mut broken, break_msg: ref mut msg, .. } => {
@@ -44,5 +52,14 @@ impl<'a> traits::Breakable for Container<'a> {
             }
             _ => println!("I don't think that will work..")
         }
+    }
+}
+
+impl<'a> Describable for Computer<'a> {
+    fn name(&self) {
+        items::printer(self.name)
+    }
+    fn describe(&self) {
+        items::printer(self.desc)
     }
 }

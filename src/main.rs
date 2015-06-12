@@ -1,11 +1,12 @@
 extern crate rand;
 
-mod generator;
+mod maze;
 mod traits;
 mod items;
 mod containers;
+mod player;
 
 fn main() {
-    let maze = generator::Maze::new(100000);
+    let maze = maze::Maze::new(100000);
     println!("Hello, world!");
 }

@@ -1,5 +1,6 @@
 use traits::{Searchable, Breakable, Describable};
 use items;
+use utils;
 
 pub enum Container<'a> {
     DurableSmall { name: &'a str, description: &'a str, item: items::Item<'a> },
@@ -17,22 +18,22 @@ pub struct Computer<'a> {
 }
 
 impl<'a> Describable for Container<'a> {
-    fn name(&self) {
+    fn print_name(&self) {
         match *self {
-            Container::DurableSmall{ name: ref name, .. } => items::printer(name),
-            Container::FragileSmall{ name: ref name, .. } => items::printer(name),
-            Container::Large{ name: ref name, .. } => items::printer(name),
+            Container::DurableSmall{ name: ref name, .. } => utils::printer(name),
+            Container::FragileSmall{ name: ref name, .. } => utils::printer(name),
+            Container::Large{ name: ref name, .. } => utils::printer(name),
             Container::Bed{ .. } => ()
         }
     }
 
-    fn describe(&self) {
+    fn print_desc(&self) {
         match *self {
-            Container::DurableSmall{ description: ref desc, .. } => items::printer(desc),
-            Container::Large{ description: ref desc, .. } => items::printer(desc),
-            Container::Bed{ description: ref desc, .. } => items::printer(desc),
+            Container::DurableSmall{ description: ref desc, .. } => utils::printer(desc),
+            Container::Large{ description: ref desc, .. } => utils::printer(desc),
+            Container::Bed{ description: ref desc, .. } => utils::printer(desc),
             Container::FragileSmall{ description: ref desc, broken_desc: ref broken_desc, broken: ref broken, .. } => {
-                if *broken { items::printer(broken_desc) } else { items::printer(desc) }
+                if *broken { utils::printer(broken_desc) } else { utils::printer(desc) }
             }
         }
     }
@@ -43,7 +44,7 @@ impl<'a> Breakable for Container<'a> {
         match *self {
             Container::FragileSmall { broken: ref mut broken, break_msg: ref mut msg, .. } => {
                 if !*broken {
-                    items::printer(msg);
+                    utils::printer(msg);
                     *broken = true;
                 }
                 else {
@@ -56,10 +57,10 @@ impl<'a> Breakable for Container<'a> {
 }
 
 impl<'a> Describable for Computer<'a> {
-    fn name(&self) {
-        items::printer(self.name)
+    fn print_name(&self) {
+        utils::printer(self.name)
     }
-    fn describe(&self) {
-        items::printer(self.desc)
+    fn print_desc(&self) {
+        utils::printer(self.desc)
     }
 }

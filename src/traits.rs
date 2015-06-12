@@ -1,7 +1,7 @@
 
 pub trait Describable {
-    fn name(&self) ;
-    fn describe (&self) ;
+    fn print_name(&self) ;
+    fn print_desc (&self) ;
 }
 
 pub trait Breakable {

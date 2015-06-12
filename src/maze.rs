@@ -8,10 +8,10 @@ use containers;
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
 
-pub struct Maze<'a> {
+pub struct Maze<'a: 'b, 'b> {
     start: InitialRoom,
     maze : MazePath<'a>,
-    player: Player<'a>
+    player: Player<'a, 'b>
 }
 
 pub struct Door {
@@ -126,13 +126,13 @@ impl<'a> Searchable for MazePath<'a> {
             println!("The room contains various items")
         }
         for container in containers {
-            container.name()
+            container.print_name()
         }
     }
 }
 
-impl<'a> Maze<'a> {
-    pub fn new(num_rooms: u32, player_name: &'a str) -> Maze<'a> {
+impl<'a, 'b> Maze<'a, 'b> {
+    pub fn new(num_rooms: u32, player_name: &'a str) -> Maze<'a, 'b> {
         Maze { start: InitialRoom, maze: MazePath::new(num_rooms), player: Player::new(player_name) }
     }
 }

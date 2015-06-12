@@ -7,6 +7,7 @@ mod traits;
 mod items;
 mod containers;
 mod player;
+mod utils;
 
 fn main() {
     println!("What is your name?");

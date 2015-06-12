@@ -1,4 +1,5 @@
 use traits::{Breakable, Describable};
+use utils;
 
 pub enum Item<'a> {
     Key { name: &'a str, description: &'a str, id: u32 },
@@ -7,19 +8,19 @@ pub enum Item<'a> {
 }
 
 impl<'a> Describable for Item<'a> {
-    fn name(&self) -> () {
+    fn print_name(&self) -> () {
         match self {
-            &Item::Key{ name: ref name, .. } => printer(name),
-            &Item::DurableItem{ name: ref name, .. } => printer(name),
-            &Item::FragileItem{ name: ref name, .. } => printer(name)
+            &Item::Key{ name: ref name, .. } => utils::printer(name),
+            &Item::DurableItem{ name: ref name, .. } => utils::printer(name),
+            &Item::FragileItem{ name: ref name, .. } => utils::printer(name)
         }
     }
-    fn describe(&self) -> () {
+    fn print_desc(&self) -> () {
         match self {
-            &Item::Key{ description: ref d, .. } => printer(d),
-            &Item::DurableItem{ description: ref d, .. } => printer(d), 
+            &Item::Key{ description: ref d, .. } => utils::printer(d),
+            &Item::DurableItem{ description: ref d, .. } => utils::printer(d), 
             &Item::FragileItem{ description: ref desc, broken: ref broken, broken_desc: ref broken_desc, .. } =>
-                if *broken { printer(broken_desc) } else { printer(desc) }
+                if *broken { utils::printer(broken_desc) } else { utils::printer(desc) }
         }
     }
 }
@@ -29,7 +30,7 @@ impl<'a> Breakable for Item<'a> {
         match *self {
             Item::FragileItem{ break_msg: ref msg, broken: ref mut broken, ..} => {
                 if !*broken {
-                    printer(msg);
+                    utils::printer(msg);
                     *broken = true;
                 }
             }
@@ -38,6 +39,3 @@ impl<'a> Breakable for Item<'a> {
     }
 }
 
-pub fn printer(str: &str) -> () {
-    println!("{}", str)
-}

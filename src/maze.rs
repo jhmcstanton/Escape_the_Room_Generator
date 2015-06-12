@@ -167,7 +167,8 @@ impl<'a, 'b> Maze<'a, 'b> {
             }
         }
         else {
-            { println!("Give me a command!"); false }
+            println!("Give me a command!");
+            false 
         }
         
     }

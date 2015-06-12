@@ -6,10 +6,12 @@ use std::cmp;
 use items;
 use containers;
 use traits::{Describable, Searchable, Breakable};
+use player::Player;
 
 pub struct Maze<'a> {
     start: InitialRoom,
-    maze : MazePath<'a>
+    maze : MazePath<'a>,
+    player: Player<'a>
 }
 
 pub struct Door {
@@ -130,8 +132,8 @@ impl<'a> Searchable for MazePath<'a> {
 }
 
 impl<'a> Maze<'a> {
-    pub fn new(num_rooms: u32) -> Maze<'a> {
-        Maze { start: InitialRoom, maze: MazePath::new(num_rooms) }
+    pub fn new(num_rooms: u32, player_name: &'a str) -> Maze<'a> {
+        Maze { start: InitialRoom, maze: MazePath::new(num_rooms), player: Player::new(player_name) }
     }
 }
 

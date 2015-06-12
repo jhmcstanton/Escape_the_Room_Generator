@@ -152,11 +152,10 @@ impl<'a, 'b> Maze<'a, 'b> {
         let mut cmd = String::new();
         match io::stdin().read_line(&mut cmd) {
             Result::Err(..) => println!("Hm... that's odd. Try that command again"),
-            //Result::Ok(size) if size == 0 => println!("Give me a command!"),
             Result::Ok(..) => {  }
         }
         //cmd.to_lowercase(); // this is an unstable feature in rust, nevertheless it would be nice to have in here
-        let mut commands : Vec<&str> = cmd.split(|c: char| c == ' ' || c == '\n').collect();
+        let commands : Vec<&str> = cmd.split(|c: char| c == ' ' || c == '\n').collect();
         if commands.len() > 0 {
             for c in &commands {
                 utils::printer(c);

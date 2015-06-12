@@ -3,10 +3,16 @@ extern crate std;
 
 use rand::Rng;
 use std::cmp;
+use std::io;
+use std::io::Write;
+use std::convert::AsRef;
+
 use items;
 use containers;
+use utils;
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
+
 
 pub struct Maze<'a: 'b, 'b> {
     start: InitialRoom,
@@ -81,7 +87,7 @@ impl<'a> MazePath<'a> {
                 }
             }
             else {
-                let attached_room_count = rand::thread_rng().gen_range(0, std::cmp::min(additional_rooms, *max_rooms_attached) + 1);
+                let attached_room_count = rand::thread_rng().gen_range(0, cmp::min(additional_rooms, *max_rooms_attached) + 1);
                 let branch_with_exit = rand::thread_rng().gen_range(0, attached_room_count + 1); // gen_range is exclusive on the RHS, hence the + 1
                 println!("Branch with exit: {}", branch_with_exit);
                 let mut rooms_left = additional_rooms - attached_room_count;
@@ -135,5 +141,41 @@ impl<'a, 'b> Maze<'a, 'b> {
     pub fn new(num_rooms: u32, player_name: &'a str) -> Maze<'a, 'b> {
         Maze { start: InitialRoom, maze: MazePath::new(num_rooms), player: Player::new(player_name) }
     }
+
+    pub fn help(&self) {
+        println!("{}", "Commands:\n\tmove <room number or back> (move 0 and back are equivalent)\n\tinspect <item or room>".to_string() + 
+                 "\n\tsearch <item or room>\n\tbreak <item>\n\thelp \n\tquit")
+    }
+
+    pub fn take_input(&mut self) -> bool {
+        print!(">>> "); io::stdout().flush();
+        let mut cmd = String::new();
+        match io::stdin().read_line(&mut cmd) {
+            Result::Err(..) => println!("Hm... that's odd. Try that command again"),
+            //Result::Ok(size) if size == 0 => println!("Give me a command!"),
+            Result::Ok(..) => {  }
+        }
+        //cmd.to_lowercase(); // this is an unstable feature in rust, nevertheless it would be nice to have in here
+        let mut commands : Vec<&str> = cmd.split(|c: char| c == ' ' || c == '\n').collect();
+        if commands.len() > 0 {
+            for c in &commands {
+                utils::printer(c);
+            }
+            match commands[0] {
+                "quit" => { println!("You'll be back sooner or later"); true },
+                "help" => { self.help(); false },
+                s      => { println!("Try that one again, chief"); false }
+            }
+        }
+        else {
+            { println!("Give me a command!"); false }
+        }
+        
+    }
+    /*pub fn move_player(&mut self) {
+        match self.player.pos {
+            Option::None => 
+        }
+    }*/
 }
 

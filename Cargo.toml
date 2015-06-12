@@ -1,0 +1,7 @@
+[package]
+name = "escape_the_room"
+version = "0.1.0"
+authors = ["Jim Stanton <jim@jhstanton.com>"]
+
+[dependencies]
+rand = "0.3.0"

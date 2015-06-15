@@ -16,6 +16,7 @@ pub struct Computer<'a> {
     desc: &'a str,
     password: &'a str,
     hint_url: &'a str,
+    id : u32,
     lock_opened: bool
 }
 

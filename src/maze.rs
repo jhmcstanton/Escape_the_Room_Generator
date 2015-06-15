@@ -10,6 +10,7 @@ use std::convert::AsRef;
 use items;
 use containers;
 use utils;
+use utils::{Either};
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
 
@@ -21,7 +22,7 @@ pub struct Maze<'a: 'b, 'b> {
 
 pub struct Door {
     locked: bool,
-    id : u32
+    id : u32,
 }
 
 pub struct Exit {

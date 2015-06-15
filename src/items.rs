@@ -8,20 +8,20 @@ pub enum Item<'a> {
 
 pub enum Key<'a> {
     Key { name: &'a str, description: &'a str, id: u32 },
-    Password { word: &'a str } 
+    Password { id: u32, used: bool } 
 }
 
 impl<'a> Describable for Key<'a> {
-    fn print_name(&self) {
+    fn print_name(&self) { 
         match self {
             &Key::Key{ name: ref name, .. } => utils::printer(name),
-            &Key::Password{ word: ref w }   => println!("The password is: {}", w)
+            &Key::Password{ id: ref w, .. } => println!("The password is: {}", w)// maybe don't expose this API outside of testing
         }
     }
     fn print_desc(&self) {
         match self {
             &Key::Key{ description: ref d, .. } => utils::printer(d),
-            &Key::Password{ word: ref w }       => println!("The password is: {}", w)
+            &Key::Password{ id: ref w, .. }     => println!("The password is: {}", w) // maybe don't expose this API outside of testing
         }
     }
 }

@@ -7,6 +7,7 @@ pub enum Item<'a> {
     FragileItem { name: &'a str, description: &'a str, broken: bool, break_msg: &'a str, broken_desc: &'a str }
 }
 
+
 impl<'a> Describable for Item<'a> {
     fn print_name(&self) -> () {
         match self {

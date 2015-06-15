@@ -13,7 +13,6 @@ use utils;
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
 
-
 pub struct Maze<'a: 'b, 'b> {
     start: InitialRoom,
     maze : MazePath<'a>,
@@ -21,11 +20,13 @@ pub struct Maze<'a: 'b, 'b> {
 }
 
 pub struct Door {
-    locked: bool
+    locked: bool,
+    id : u32
 }
 
 pub struct Exit {
-    locked: bool
+    locked: bool,
+    id: u32
 }
 
 pub struct InitialRoom;
@@ -48,8 +49,8 @@ pub enum MazePath<'a> {
 }
 
 impl Exit {
-    fn new() -> Exit {
-        Exit { locked: true }
+    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Exit, items::Item<'a>) {
+        ( Exit { locked: true , id: key_id}, items::Item::Key{name: key_name, description: key_desc, id: key_id})
     }
 
     fn open(&self) {
@@ -63,8 +64,8 @@ impl Exit {
 }
 
 impl Door {
-    fn new() -> Door {
-        Door { locked: true }
+    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Door, items::Item<'a>) { // at some point this needs to return a (Door, Key)
+        (Door { locked: true, id: 0 }, items::Item::Key{name: key_name, description: key_desc, id: key_id})
     }
     fn open(&self) -> bool {
         self.locked
@@ -74,16 +75,20 @@ impl Door {
 impl<'a> MazePath<'a> {
     fn new(additional_rooms: u32) -> MazePath<'a> {
         let max_rooms_attached = 3;
+        let current_key = 0;
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32) -> MazePath<'b> {
+        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, current_key: u32) -> (MazePath<'b>, u32) {
             if additional_rooms == 0 {
                 if exit_here {
-                    println!("Exit here!");
-                    MazePath::Exit{ entrance: Door::new(), exit: Exit::new(), containers: vec![] } // update when container generator is ready
+                    println!("Exit here!");                     
+                    let (exit, exit_key) = Exit::new("", "", current_key); // update when container generator is ready
+                    let (door, door_key) = Door::new("", "", current_key + 1);
+                    (MazePath::Exit{ entrance: door, exit: exit, containers: vec![] }, current_key + 2)
                 }
                 else {
                     println!("made a room");
-                    MazePath::Room { door: Door::new(), containers: vec![] }
+                    let (door, door_key) = Door::new("", "", current_key);
+                    (MazePath::Room { door: door, containers: vec![] }, current_key + 1)
                 }
             }
             else {
@@ -92,8 +97,10 @@ impl<'a> MazePath<'a> {
                 println!("Branch with exit: {}", branch_with_exit);
                 let mut rooms_left = additional_rooms - attached_room_count;
                 let mut rooms_here = 0;
-                
-                MazePath::Connector{ door: Door::new(), containers: vec![], other_rooms: {
+
+                let (door, door_key) = Door::new("", "", current_key);
+                let mut current_key  = current_key + 1;
+                let connector = MazePath::Connector{ door: door, containers: vec![], other_rooms: {
                     let mut rooms = vec![];
                     println!("Attached room count: {}", attached_room_count);
                     for room_num in (0..attached_room_count + 1) {
@@ -110,13 +117,21 @@ impl<'a> MazePath<'a> {
                             };
                             
                         rooms_left -= rooms_here;
-                        rooms.push(build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached))
+                        match build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key) {
+                            (room, key_id) => {
+                                rooms.push(room);
+                                current_key = key_id;
+                            }
+                        }
+                        //rooms.push(build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key))
                     }
-                    rooms 
-                }}
+                    rooms
+                }};
+                (connector, current_key)
             }
         }
-        build(additional_rooms, true, &max_rooms_attached)
+        let (path, _) = build(additional_rooms, true, &max_rooms_attached, current_key);
+        path
     }
     
 }
@@ -172,6 +187,7 @@ impl<'a, 'b> Maze<'a, 'b> {
         }
         
     }
+    
     /*pub fn move_player(&mut self) {
         match self.player.pos {
             Option::None => 

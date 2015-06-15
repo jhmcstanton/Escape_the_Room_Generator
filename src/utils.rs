@@ -1,6 +1,9 @@
 extern crate markov;
 
 use markov::Chain;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::BufRead;
 
 pub fn printer(str: &str) -> () {
     println!("{}", str)
@@ -49,6 +52,7 @@ impl<'a> SentenceGenerator{
             WordClass::Adjective(ref s) => self.adjectives.feed_str(s),
             WordClass::Adverb(ref s)    => self.adverbs.feed_str(s)
         };
-    }
-    
+    }   
 }
+
+    

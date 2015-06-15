@@ -9,7 +9,13 @@ pub fn printer(str: &str) -> () {
     println!("{}", str)
 }
 
-enum WordClass<'a> {
+// hand rolled either type since Result is semantically different
+pub enum Either<A, B> {
+    Left(A),
+    Right(B)
+}
+
+pub enum WordClass<'a> {
     Noun(&'a str),
     Pronoun(&'a str),
     Verb(&'a str),
@@ -17,7 +23,7 @@ enum WordClass<'a> {
     Adverb(&'a str)
 }
 
-struct SentenceGenerator {
+pub struct SentenceGenerator {
     nouns      : Chain<String>,
     pronouns   : Chain<String>,
     verbs      : Chain<String>,

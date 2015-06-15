@@ -4,7 +4,7 @@ use maze;
 
 pub struct Player<'a: 'b, 'b> {
     name: &'a str,
-    keys: Vec<&'b items::Item<'a>>,
+    keys: Vec<&'b items::Key<'a>>,
     items: Vec<&'b items::Item<'a>>,
     pos  : Option<&'b maze::MazePath<'a>>,
     previous_room: Option<&'b maze::MazePath<'a>>
@@ -20,18 +20,20 @@ impl<'a, 'b> Player<'a, 'b> {
         self.pos = Option::Some(next_room);
     }
 
-    pub fn add_key(&mut self, key: &'b items::Item<'a>) {
+    pub fn add_key(&mut self, key: &'b items::Key<'a>) {
+        self.keys.push(key); /*
         match key {
-            &items::Item::Key{ .. } => self.keys.push(key),
+            &items::Key::Key{ .. } => self.keys.push(key),
             _ => panic!("Cannot add item into key inventory!")
-        }
+        } */
     }
 
     pub fn add_item(&mut self, item: &'b items::Item<'a>) {
-        match item {
+        self.items.push(item);
+        /*match item {
             &items::Item::Key { .. } => panic!("Keys cannot be added into item inventory, only key inventory"),
             _ => self.items.push(item)
-        }
+        }*/
     }
 
     pub fn list_keys(&self) {

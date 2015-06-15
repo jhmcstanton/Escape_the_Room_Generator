@@ -49,8 +49,8 @@ pub enum MazePath<'a> {
 }
 
 impl Exit {
-    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Exit, items::Item<'a>) {
-        ( Exit { locked: true , id: key_id}, items::Item::Key{name: key_name, description: key_desc, id: key_id})
+    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Exit, items::Key<'a>) {
+        ( Exit { locked: true , id: key_id}, items::Key::Key{name: key_name, description: key_desc, id: key_id})
     }
 
     fn open(&self) {
@@ -64,8 +64,8 @@ impl Exit {
 }
 
 impl Door {
-    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Door, items::Item<'a>) { // at some point this needs to return a (Door, Key)
-        (Door { locked: true, id: 0 }, items::Item::Key{name: key_name, description: key_desc, id: key_id})
+    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Door, items::Key<'a>) { 
+        (Door { locked: true, id: 0 }, items::Key::Key{name: key_name, description: key_desc, id: key_id})
     }
     fn open(&self) -> bool {
         self.locked
@@ -78,7 +78,7 @@ impl<'a> MazePath<'a> {
         let key_here_chance = 50;
         let current_key = 0;
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath<'b>, u32, Vec<items::Item<'a>>) { 
+        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath<'b>, u32, Vec<items::Key<'a>>) { 
             if additional_rooms == 0 {
                 if exit_here {
                     println!("Exit here!");                     

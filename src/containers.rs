@@ -1,12 +1,13 @@
 use traits::{Searchable, Breakable, Describable};
 use items;
 use utils;
+use utils::{Either};
 
 pub enum Container<'a> {
-    DurableSmall { name: &'a str, description: &'a str, item: items::Item<'a> },
-    FragileSmall { name: &'a str, description: &'a str, item: items::Item<'a>, broken: bool, break_msg: &'a str, broken_desc: &'a str },
-    Large { name: &'a str, description: &'a str, items: Vec<items::Item<'a>> },
-    Bed { description: &'a str, item: items::Item<'a> },
+    DurableSmall { name: &'a str, description: &'a str, item: Either<items::Key<'a>, items::Item<'a>> },
+    FragileSmall { name: &'a str, description: &'a str, item: Either<items::Key<'a>, items::Item<'a>>, broken: bool, break_msg: &'a str, broken_desc: &'a str },
+    Large { name: &'a str, description: &'a str, items: Vec<items::Item<'a>>, keys: Vec<items::Key<'a>> },
+    Bed { description: &'a str, item: items::Item<'a>, keys: Vec<items::Key<'a>> },
 }
 
 pub struct Computer<'a> {
@@ -16,6 +17,7 @@ pub struct Computer<'a> {
     hint_url: &'a str,
     lock_opened: bool
 }
+
 
 impl<'a> Describable for Container<'a> {
     fn print_name(&self) {

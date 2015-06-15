@@ -8,6 +8,7 @@ pub enum Container<'a> {
     FragileSmall { name: &'a str, description: &'a str, item: Either<items::Key<'a>, items::Item<'a>>, broken: bool, break_msg: &'a str, broken_desc: &'a str },
     Large { name: &'a str, description: &'a str, items: Vec<items::Item<'a>>, keys: Vec<items::Key<'a>> },
     Bed { description: &'a str, item: items::Item<'a>, keys: Vec<items::Key<'a>> },
+    Desk { description: &'a str, computer: Option<Computer<'a>>, items: Vec<items::Item<'a>>, keys: Vec<items::Key<'a>>}
 }
 
 pub struct Computer<'a> {
@@ -25,7 +26,8 @@ impl<'a> Describable for Container<'a> {
             Container::DurableSmall{ name: ref name, .. } => utils::printer(name),
             Container::FragileSmall{ name: ref name, .. } => utils::printer(name),
             Container::Large{ name: ref name, .. } => utils::printer(name),
-            Container::Bed{ .. } => ()
+            Container::Bed{ .. } => println!("Who names a bed?"),
+            Container::Desk{ .. } => println!("You try naming a desk, ok? It's not easy")
         }
     }
 
@@ -34,6 +36,7 @@ impl<'a> Describable for Container<'a> {
             Container::DurableSmall{ description: ref desc, .. } => utils::printer(desc),
             Container::Large{ description: ref desc, .. } => utils::printer(desc),
             Container::Bed{ description: ref desc, .. } => utils::printer(desc),
+            Container::Desk{ description: ref desc, .. } => utils::printer(desc),
             Container::FragileSmall{ description: ref desc, broken_desc: ref broken_desc, broken: ref broken, .. } => {
                 if *broken { utils::printer(broken_desc) } else { utils::printer(desc) }
             }

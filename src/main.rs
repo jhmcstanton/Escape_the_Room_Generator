@@ -13,9 +13,9 @@ mod player;
 mod utils;
 
 fn main() {
-    let mut chain = Chain::for_strings();
+    /*let mut chain = Chain::for_strings();
     chain.feed_str("white black red");//white or brown or black or yellow");
-    println!("{}", chain.generate_str());
+    println!("{}", chain.generate_str());*/
 
 /*    let mut chains = vec![Chain::for_strings(), Chain::for_strings(), Chain::for_strings(), Chain::for_strings(), Chain::for_strings()];
     chains[0].feed_str("The white The black The brown The yellow The orange");
@@ -26,7 +26,7 @@ fn main() {
     println!("{}", chains.iter().fold(String::new(), |str, word| str + &word.generate_str()));*/
     //println!("{}", chain.generate_str() + &chain.generate_str());
     
-    /*
+    
     println!("What is your name?");
     print!(">>> "); io::stdout().flush();
 
@@ -44,5 +44,5 @@ fn main() {
         if maze.take_input() {
             break;
         }
-    }*/
+    }
 }

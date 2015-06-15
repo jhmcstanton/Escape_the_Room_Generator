@@ -75,20 +75,21 @@ impl Door {
 impl<'a> MazePath<'a> {
     fn new(additional_rooms: u32) -> MazePath<'a> {
         let max_rooms_attached = 3;
+        let key_here_chance = 50;
         let current_key = 0;
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, current_key: u32) -> (MazePath<'b>, u32) {
+        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath<'b>, u32, Vec<items::Item<'a>>) { 
             if additional_rooms == 0 {
                 if exit_here {
                     println!("Exit here!");                     
                     let (exit, exit_key) = Exit::new("", "", current_key); // update when container generator is ready
                     let (door, door_key) = Door::new("", "", current_key + 1);
-                    (MazePath::Exit{ entrance: door, exit: exit, containers: vec![] }, current_key + 2)
+                    (MazePath::Exit{ entrance: door, exit: exit, containers: vec![] }, current_key + 2, vec![door_key, exit_key])
                 }
                 else {
                     println!("made a room");
                     let (door, door_key) = Door::new("", "", current_key);
-                    (MazePath::Room { door: door, containers: vec![] }, current_key + 1)
+                    (MazePath::Room { door: door, containers: vec![] }, current_key + 1, vec![door_key])
                 }
             }
             else {
@@ -97,6 +98,7 @@ impl<'a> MazePath<'a> {
                 println!("Branch with exit: {}", branch_with_exit);
                 let mut rooms_left = additional_rooms - attached_room_count;
                 let mut rooms_here = 0;
+                let mut keys_to_add = vec![];
 
                 let (door, door_key) = Door::new("", "", current_key);
                 let mut current_key  = current_key + 1;
@@ -117,21 +119,30 @@ impl<'a> MazePath<'a> {
                             };
                             
                         rooms_left -= rooms_here;
-                        match build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key) {
-                            (room, key_id) => {
+                        match build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, key_here_chance, current_key) {
+                            (room, key_id, keys) => {
                                 rooms.push(room);
                                 current_key = key_id;
+                                for key in keys {
+                                    keys_to_add.push(key);
+                                }
                             }
                         }
                         //rooms.push(build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key))
                     }
                     rooms
                 }};
-                (connector, current_key)
+                (connector, current_key, keys_to_add)
             }
         }
-        let (path, _) = build(additional_rooms, true, &max_rooms_attached, current_key);
-        path
+        let (path, _, keys) = build(additional_rooms, true, &max_rooms_attached, &key_here_chance, current_key);
+        if keys.len() != 0 { // when keys are placed this should be keys.len == 0
+            println!("Number of keys generated: {}", keys.len());
+            path
+        }
+        else {
+            panic!("No keys generated!") // this should panic for keys existing at this level once item generation is done
+        }
     }
     
 }

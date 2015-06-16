@@ -1,6 +1,11 @@
 extern crate rand;
 
 use rand::Rng;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::fs::File;
+use std::collections::HashMap;
+use std::convert::AsRef;
 
 use traits::{Searchable, Breakable, Describable};
 use items;
@@ -25,17 +30,92 @@ pub struct Computer {
 }
 
 pub struct ContainerStringGenerator {
-    durable_small_gen : StringGenerator,
-    fragile_small_gen : StringGenerator,
-    large_gen         : StringGenerator,
-    bed_gen           : StringGenerator,
-    desk_gen          : StringGenerator
+    gen: HashMap<String, StringGenerator>
+}
+
+
+
+impl ContainerStringGenerator {
+    // uses paths relative to the binary itself to make the generator
+    pub fn new() -> ContainerStringGenerator {
+        let base_path = "res/containers";
+        let folders   = vec![
+            "bed",
+            "desk",
+            "general",
+            "large",
+            "small_durable",
+            "small_fragile"];
+        let files    = vec![
+            "adjectives.txt",
+            "nouns.txt"];
+        let additional_files = vec!["break_msgs.txt", "broken_descs.txt"];
+            
+        let mut generator   = ContainerStringGenerator { gen: HashMap::new() };
+        for folder in folders {
+            generator.gen.insert(folder.to_string(), StringGenerator::empty());
+            for file_name in &files {
+                let file_to_open = base_path.to_string() + &folder + file_name;
+                
+                let f = match File::open(&file_to_open) {
+                    Ok(f) => f,
+                    Err(e) => { utils::kill_with_file_error(&file_to_open, e); panic!("clean this up!") }
+                };
+                let mut file = BufReader::new(&f);
+                for line in file.lines(){
+                    match (line, file_name.to_string().as_ref()) {
+                        (Err(e), _) => { utils::kill_with_file_error(&file_to_open, e); panic!("Clean this up!")},
+                        (Ok(l), "adjectives.txt")  => {
+                            if let Some(str_gen) = generator.gen.get_mut(folder) {
+                                str_gen.feed(utils::WordClass::Adjective(l))
+                            }
+                        }
+                        (Ok(l), "nouns.txt")       => {
+                            if let Some(str_gen) = generator.gen.get_mut(folder) {
+                                str_gen.feed(utils::WordClass::Noun(l))
+                            }
+                        }
+                        (Ok(l), _ )                => {
+                            println!("Filename: {} does not match expected file, contact developer", file_name);
+                            panic!("Closing!")
+                        }
+                    }
+                }
+            }
+            // need to add more resources so this can be done right
+            for file_name in &additional_files {
+                let file_to_open = base_path.to_string() + file_name;
+                let f = match File::open(file_to_open) {
+                    Err(e) => { utils::kill_with_file_error(file_name, e); panic!("Clean this up!") },
+                    Ok(f)  => f 
+                };
+                let file = BufReader::new(&f);
+                for line in file.lines(){
+                    match (line, file_name.to_string().as_ref()) {
+                        (Err(e), s )               => { utils::kill_with_file_error(s, e); panic!("Clean this up!")},
+                        (Ok(l), "break_msgs.txt")  => {
+                            if let Some(str_gen) = generator.gen.get_mut(folder) {
+                                str_gen.feed(utils::WordClass::BreakMsg(l))
+                            }
+                        }
+                        (Ok(l), "broken_desc.txt") => {
+                            if let Some(str_gen) = generator.gen.get_mut(folder) {
+                                str_gen.feed(utils::WordClass::BrokenDesc(l))
+                            }
+                        }
+                        (Ok(l), _) => panic!("Closing program, unexpected file read")
+                    }
+                }
+            }            
+        }
+        generator
+    }
 }
 
 impl Container {
     pub fn generate(str_generator: ContainerStringGenerator) -> Vec<Container> {
         let max_num_containers = 5;
-        let mut containers = vec![];
+        let mut containers     = vec![];
 
         let num_containers = rand::thread_rng().gen_range(0, max_num_containers + 1);
         for _ in (0..num_containers) {
@@ -44,20 +124,28 @@ impl Container {
         containers
     }
 
-    fn from_num(str_generator: &ContainerStringGenerator, n: u32) -> Container { // need to make a markov generator for containers still
-        
-        match n {
-            0 =>{
-                let (name, desc) = str_generator.durable_small_gen.name_desc_pair();
+    fn from_num(str_generator: &ContainerStringGenerator, n: u32) -> Container { 
+        let container_types    = vec![
+            "bed",
+            "desk",
+            "general",
+            "large",
+            "small_durable",
+            "small_fragile"];
+        let container_type = container_types[rand::thread_rng().gen_range(0, container_types.len())];
+        match (str_generator.gen.get(container_type), container_type) {
+            (Option::None, _)     => panic!("String generator was not populated correctly!"),        
+            (Option::Some(g), "small_durable") => {
+                let (name, desc) = g.name_desc_pair();
                 Container::DurableSmall {
                     name        : name,
                     description : desc,
                     item        : Possibly::None,
                 }
             }
-            1 =>{
-                let (name, desc) = str_generator.fragile_small_gen.name_desc_pair();
-                let (broken_desc, break_msg) = str_generator.fragile_small_gen.broken_str_pair();
+            (Option::Some(g), "small_fragile")  => { 
+                let (name, desc) = g.name_desc_pair();
+                let (broken_desc, break_msg) = g.broken_str_pair();
                 Container::FragileSmall {
                     name        : name,
                     description : desc,
@@ -67,8 +155,8 @@ impl Container {
                     break_msg   : break_msg
                 }
             }
-            2 => {
-                let (name, desc) = str_generator.large_gen.name_desc_pair();
+            (Option::Some(g), "large") => {
+                let (name, desc) = g.name_desc_pair();
                 Container::Large {
                     name        : name,
                     description : desc,
@@ -76,16 +164,16 @@ impl Container {
                     keys  : vec![]
                 }
             }
-            3 => {
-                let (_, desc) = str_generator.bed_gen.name_desc_pair();
+            (Option::Some(g), "bed")  => {
+                let (_, desc) = g.name_desc_pair();
                 Container::Bed {
                     description : desc,
                     item        : Option::None,
                     key         : Option::None
                 }
             }
-            _ => {
-                let (_, desc) = str_generator.desk_gen.name_desc_pair();
+            (Option::Some(g), _) => {
+                let (_, desc) = g.name_desc_pair();
                 Container::Desk {
                     description : desc,
                     computer    : Option::None,

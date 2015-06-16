@@ -4,9 +4,16 @@ use rand::Rng;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
+use std::fmt::Display;
 
 pub fn printer(str: &str) -> () {
     println!("{}", str)
+}
+
+pub fn kill_with_file_error<E: Display>(file_name: &str, error: E) {
+    println!("Error opening file: {}, error: {}", file_name, error);
+    println!("Possible cause: missing res folder (needs to be in same directory as game binary)");
+    panic!("Closing program due to error");
 }
 
 // hand rolled either type since Result is semantically different
@@ -43,6 +50,7 @@ pub struct StringGenerator {
 }
 
 impl<'a> StringGenerator{
+    
     pub fn name_desc_pair(&self) -> (String, String) {
         let noun    = self.nouns[rand::thread_rng().gen_range(0, self.nouns.len())].clone();
         let gen_adj = self.gen_adjectives[rand::thread_rng().gen_range(0, self.gen_adjectives.len())].clone();

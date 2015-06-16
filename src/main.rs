@@ -1,7 +1,7 @@
 extern crate rand;
-extern crate markov;
+//extern crate markov;
 
-use markov::Chain;
+//use markov::Chain;
 
 use std::io;
 use std::io::Write;

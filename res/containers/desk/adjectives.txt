@@ -1,0 +1,13 @@
+wooden
+metal
+large
+small
+musty
+computer
+office
+study
+accounting
+auditing
+design
+drafting
+crafting

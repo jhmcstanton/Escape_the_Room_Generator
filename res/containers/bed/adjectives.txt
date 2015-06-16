@@ -1,0 +1,10 @@
+wrinkled
+rotten
+broken
+large
+small
+wooden
+iron
+covered
+empty
+canopied

@@ -1,0 +1,21 @@
+box
+tackle box
+tool box
+chest
+cabinet
+pantry
+closet
+bookcase
+shelf
+wrack
+dresser
+tote
+bag
+refridgerator
+freezer
+deep freeze
+ice box
+hutch
+hamper
+sack
+casket

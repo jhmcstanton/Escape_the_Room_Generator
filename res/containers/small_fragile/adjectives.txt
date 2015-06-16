@@ -1,0 +1,12 @@
+small
+aged
+weathered
+tattered
+new
+clean
+dirty
+filthy
+grimy
+gritty
+grainy
+rough

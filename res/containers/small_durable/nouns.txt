@@ -1,0 +1,24 @@
+bag
+satchel
+sack
+lock box
+chest
+pot
+cauldren
+box
+safe
+trunk
+coffer
+bin
+crate
+vault
+carton
+strongbox
+case
+suitcase
+basket
+caddy
+drawer
+locket
+casing
+

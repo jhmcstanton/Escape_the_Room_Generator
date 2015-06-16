@@ -1,0 +1,11 @@
+table
+desk
+stand
+workspace
+counter
+rolltop
+lecturn
+bureau
+davenport
+coffee table
+folding table

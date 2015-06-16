@@ -1,0 +1,6 @@
+wooden
+metal
+large
+small
+sturdy
+solid

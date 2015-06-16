@@ -84,15 +84,15 @@ impl MazePath {
                 (MazePath, u32, Vec<items::Key>) { 
             if additional_rooms == 0 {
                 if exit_here {
-                    println!("Exit here!");                     
+                    println!("Exit here!");
                     let (exit, exit_key) = Exit::new("".to_string(), "".to_string(), current_key); // update when container generator is ready
                     let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
-                    (MazePath::Exit{ entrance: door, exit: exit, containers: vec![] }, current_key + 2, vec![door_key, exit_key])
+                    (MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate() }, current_key + 2, vec![door_key, exit_key])
                 }
                 else {
                     println!("made a room");
                     let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
-                    (MazePath::Room { door: door, containers: vec![] }, current_key + 1, vec![door_key])
+                    (MazePath::Room { door: door, containers: containers::Container::generate() }, current_key + 1, vec![door_key])
                 }
             }
             else {
@@ -145,6 +145,45 @@ impl MazePath {
         }
         else {
             panic!("No keys generated!") // this should panic for keys existing at this level once item generation is done
+        }
+    }
+
+    fn try_place_key(chance_key_here: u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
+        if rand::thread_rng().gen_range(0, 100) < chance_key_here {
+            for container in containers {
+                match container {
+                    &mut containers::Container::DurableSmall{ item: ref mut i, .. } => {
+                        match i {
+                            &mut Option::Some(_) => (),
+                            _ => i = { Option::Some(key); return Option::None }
+                        }                        
+                    }
+                    &mut containers::Container::FragileSmall { item: ref mut i, .. } => {
+                        match i {
+                            &mut Option::Some(_) => (),
+                            _ => i = { Option::Some(key); return Option::None } 
+                        }
+                    }
+                    &mut containers::Container::Bed { key: ref mut k, .. } => {
+                        match k {
+                            &mut Option::Some(_) => (),
+                            _               => key = { Option::Some(k); return Option::None }
+                        }
+                    }
+                    &mut containers::Container::Large { keys: ref mut ks, .. } => {
+                        ks.push(key);
+                        return Option::None
+                    }
+                    &mut containers::Container::Desk { keys: ref mut ks, .. } => {
+                        ks.push(key);
+                        return Option::None
+                    }
+                }
+            }
+            Option::None            
+        }
+        else {
+            Option::None
         }
     }
     

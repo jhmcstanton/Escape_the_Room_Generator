@@ -22,10 +22,11 @@ pub enum Either<A, B> {
     Right(B)
 }
 
-pub enum Possibly<A, B> {
+/*pub enum Possibly<A, B> {
     Some(Either<A, B>),
     None
-}
+}*/
+pub type Possibly<A, B> = Option<Either<A, B>>;
 
 pub enum WordClass {
     Noun(String),

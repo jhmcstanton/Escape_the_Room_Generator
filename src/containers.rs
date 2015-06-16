@@ -118,9 +118,10 @@ impl ContainerStringGenerator {
 }
 
 impl Container {
-    pub fn generate(str_generator: ContainerStringGenerator) -> Vec<Container> {
+    pub fn generate() -> Vec<Container> {
         let max_num_containers = 5;
         let mut containers     = vec![];
+        let str_generator  = ContainerStringGenerator::new();
 
         let num_containers = rand::thread_rng().gen_range(0, max_num_containers + 1);
         for _ in (0..num_containers) {
@@ -131,21 +132,21 @@ impl Container {
 
     fn from_num(str_generator: &ContainerStringGenerator, n: u32) -> Container { 
         let container_types    = vec![
-            "bed",
-            "desk",
-            "general",
-            "large",
-            "small_durable",
-            "small_fragile"];
+            "bed/",
+            "desk/",
+            //"general",
+            "large/",
+            "small_durable/",
+            "small_fragile/"];
         let container_type = container_types[rand::thread_rng().gen_range(0, container_types.len())];
         match (str_generator.gen.get(container_type), container_type) {
-            (Option::None, _)     => panic!("String generator was not populated correctly!"),        
+            (Option::None, _)     => { println!("Container type found: {}", &container_type); panic!("String generator was not populated correctly!")}, 
             (Option::Some(g), "small_durable") => {
                 let (name, desc) = g.name_desc_pair();
                 Container::DurableSmall {
                     name        : name,
                     description : desc,
-                    item        : Possibly::None,
+                    item        : Option::None,
                 }
             }
             (Option::Some(g), "small_fragile")  => { 
@@ -155,7 +156,7 @@ impl Container {
                     name        : name,
                     description : desc,
                     broken_desc : broken_desc,
-                    item        : Possibly::None,
+                    item        : Option::None,
                     broken      : false,
                     break_msg   : break_msg
                 }

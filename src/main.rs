@@ -35,7 +35,7 @@ fn main() {
         .ok()
         .expect("Failed to readline, looks like you can't play :(");
     
-    let mut maze = maze::Maze::new(100, &name);
+    let mut maze = maze::Maze::new(100, name);
     println!("Hello, world!");
 
     maze.help();

@@ -2,25 +2,25 @@ use traits::{Describable};
 use items;
 use maze;
 
-pub struct Player<'a: 'b, 'b> {
-    name: &'a str,
-    keys: Vec<&'b items::Key<'a>>,
-    items: Vec<&'b items::Item<'a>>,
-    pos  : Option<&'b maze::MazePath<'a>>,
-    previous_room: Option<&'b maze::MazePath<'a>>
+pub struct Player<'a> {
+    name: String,
+    keys: Vec<&'a items::Key>,
+    items: Vec<&'a items::Item>,
+    pos  : Option<&'a maze::MazePath>,
+    previous_room: Option<&'a maze::MazePath>
 }
 
-impl<'a, 'b> Player<'a, 'b> {
-    pub fn new(name: &'a str ) -> Player<'a, 'b> {
+impl<'a> Player<'a> {
+    pub fn new(name: String ) -> Player<'a> {
         Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
     }
 
-    pub fn traverse(&mut self, next_room: &'b maze::MazePath<'a>) {
+    pub fn traverse(&mut self, next_room: &'a maze::MazePath) {
         self.previous_room = self.pos;
         self.pos = Option::Some(next_room);
     }
 
-    pub fn add_key(&mut self, key: &'b items::Key<'a>) {
+    pub fn add_key(&mut self, key: &'a items::Key) {
         self.keys.push(key); /*
         match key {
             &items::Key::Key{ .. } => self.keys.push(key),
@@ -28,7 +28,7 @@ impl<'a, 'b> Player<'a, 'b> {
         } */
     }
 
-    pub fn add_item(&mut self, item: &'b items::Item<'a>) {
+    pub fn add_item(&mut self, item: &'a items::Item) {
         self.items.push(item);
         /*match item {
             &items::Item::Key { .. } => panic!("Keys cannot be added into item inventory, only key inventory"),

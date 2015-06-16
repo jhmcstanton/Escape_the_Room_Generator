@@ -14,10 +14,10 @@ use utils::{Either};
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
 
-pub struct Maze<'a: 'b, 'b> {
+pub struct Maze<'a> {
     start: InitialRoom,
-    maze : MazePath<'a>,
-    player: Player<'a, 'b>
+    maze : MazePath,
+    player: Player<'a>
 }
 
 pub struct Door {
@@ -32,25 +32,25 @@ pub struct Exit {
 
 pub struct InitialRoom;
 
-pub enum MazePath<'a> {
+pub enum MazePath {
     Room {
         door: Door,
-        containers: Vec<containers::Container<'a>>
+        containers: Vec<containers::Container>
     },
     Connector {
         door: Door,
-        other_rooms: Vec<MazePath<'a>>,
-        containers: Vec<containers::Container<'a>>
+        other_rooms: Vec<MazePath>,
+        containers: Vec<containers::Container>
     },
     Exit {
         entrance: Door,
         exit: Exit,
-        containers: Vec<containers::Container<'a>>
+        containers: Vec<containers::Container>
     }
 }
 
 impl Exit {
-    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Exit, items::Key<'a>) {
+    fn new<'a>(key_name: String, key_desc: String, key_id: u32) -> (Exit, items::Key) {
         ( Exit { locked: true , id: key_id}, items::Key::Key{name: key_name, description: key_desc, id: key_id})
     }
 
@@ -65,7 +65,7 @@ impl Exit {
 }
 
 impl Door {
-    fn new<'a>(key_name: &'a str, key_desc: &'a str, key_id: u32) -> (Door, items::Key<'a>) { 
+    fn new<'a>(key_name: String, key_desc: String, key_id: u32) -> (Door, items::Key) { 
         (Door { locked: true, id: 0 }, items::Key::Key{name: key_name, description: key_desc, id: key_id})
     }
     fn open(&self) -> bool {
@@ -73,23 +73,23 @@ impl Door {
     }
 }
 
-impl<'a> MazePath<'a> {
-    fn new(additional_rooms: u32) -> MazePath<'a> {
+impl MazePath {
+    fn new(additional_rooms: u32) -> MazePath{
         let max_rooms_attached = 3;
         let key_here_chance = 50;
         let current_key = 0;
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build<'a, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath<'b>, u32, Vec<items::Key<'a>>) { 
+        fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath, u32, Vec<items::Key>) { 
             if additional_rooms == 0 {
                 if exit_here {
                     println!("Exit here!");                     
-                    let (exit, exit_key) = Exit::new("", "", current_key); // update when container generator is ready
-                    let (door, door_key) = Door::new("", "", current_key + 1);
+                    let (exit, exit_key) = Exit::new("".to_string(), "".to_string(), current_key); // update when container generator is ready
+                    let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
                     (MazePath::Exit{ entrance: door, exit: exit, containers: vec![] }, current_key + 2, vec![door_key, exit_key])
                 }
                 else {
                     println!("made a room");
-                    let (door, door_key) = Door::new("", "", current_key);
+                    let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
                     (MazePath::Room { door: door, containers: vec![] }, current_key + 1, vec![door_key])
                 }
             }
@@ -101,7 +101,7 @@ impl<'a> MazePath<'a> {
                 let mut rooms_here = 0;
                 let mut keys_to_add = vec![];
 
-                let (door, door_key) = Door::new("", "", current_key);
+                let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
                 let mut current_key  = current_key + 1;
                 let connector = MazePath::Connector{ door: door, containers: vec![], other_rooms: {
                     let mut rooms = vec![];
@@ -148,7 +148,7 @@ impl<'a> MazePath<'a> {
     
 }
 
-impl<'a> Searchable for MazePath<'a> {
+impl Searchable for MazePath {
     fn search(&self) {
         let containers = match *self {
             MazePath::Room { containers: ref cs, .. } => cs,
@@ -164,8 +164,8 @@ impl<'a> Searchable for MazePath<'a> {
     }
 }
 
-impl<'a, 'b> Maze<'a, 'b> {
-    pub fn new(num_rooms: u32, player_name: &'a str) -> Maze<'a, 'b> {
+impl<'a> Maze<'a> {
+    pub fn new(num_rooms: u32, player_name: String) -> Maze<'a> {
         Maze { start: InitialRoom, maze: MazePath::new(num_rooms), player: Player::new(player_name) }
     }
 

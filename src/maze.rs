@@ -78,8 +78,10 @@ impl MazePath {
         let max_rooms_attached = 3;
         let key_here_chance = 50;
         let current_key = 0;
+        let container_generator = containers::ContainerStringGenerator::new();
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-        fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath, u32, Vec<items::Key>) { 
+            fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) ->
+                (MazePath, u32, Vec<items::Key>) { 
             if additional_rooms == 0 {
                 if exit_here {
                     println!("Exit here!");                     

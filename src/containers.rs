@@ -38,18 +38,18 @@ pub struct ContainerStringGenerator {
 impl ContainerStringGenerator {
     // uses paths relative to the binary itself to make the generator
     pub fn new() -> ContainerStringGenerator {
-        let base_path = "res/containers";
+        let base_path = "res/containers/";
         let folders   = vec![
-            "bed",
-            "desk",
-            "general",
-            "large",
-            "small_durable",
-            "small_fragile"];
+            "bed/",
+            "desk/",
+           // "general/", //this is a special case 
+            "large/",
+            "small_durable/",
+            "small_fragile/"];
         let files    = vec![
             "adjectives.txt",
-            "nouns.txt"];
-        let additional_files = vec!["break_msgs.txt", "broken_descs.txt"];
+            "nouns.txt",];
+        let additional_files = vec!["break_msgs.txt", "broken_descs.txt", "general/adjectives.txt"];
             
         let mut generator   = ContainerStringGenerator { gen: HashMap::new() };
         for folder in folders {
@@ -98,12 +98,17 @@ impl ContainerStringGenerator {
                                 str_gen.feed(utils::WordClass::BreakMsg(l))
                             }
                         }
-                        (Ok(l), "broken_desc.txt") => {
+                        (Ok(l), "broken_descs.txt") => {
                             if let Some(str_gen) = generator.gen.get_mut(folder) {
                                 str_gen.feed(utils::WordClass::BrokenDesc(l))
                             }
                         }
-                        (Ok(l), _) => panic!("Closing program, unexpected file read")
+                        (Ok(l), "general/adjectives.txt") => {
+                            if let Some(str_gen) = generator.gen.get_mut(folder) {
+                                str_gen.feed(utils::WordClass::GenAdjective(l))
+                            }
+                        }
+                        (Ok(l), s) => println!("Found odd file : {}", s)
                     }
                 }
             }            

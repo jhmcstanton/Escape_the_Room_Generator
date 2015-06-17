@@ -16,8 +16,8 @@ pub enum Container {
     DurableSmall { name: String, description: String, item: Possibly<items::Key, items::Item> },
     FragileSmall { name: String, description: String, item: Possibly<items::Key, items::Item>, broken: bool, break_msg: String, broken_desc: String },
     Large { name: String, description: String, items: Vec<items::Item>, keys: Vec<items::Key> },
-    Bed { description: String, item: Option<items::Item>, key: Option<items::Key> },
-    Desk { description: String, computer: Option<Computer>, items: Vec<items::Item>, keys: Vec<items::Key>}
+    Bed { name: String, description: String, item: Option<items::Item>, key: Option<items::Key> },
+    Desk { name: String, description: String, computer: Option<Computer>, items: Vec<items::Item>, keys: Vec<items::Key>}
 }
 
 pub struct Computer {
@@ -129,13 +129,33 @@ impl Container {
         }
         containers
     }
+    pub fn name(&self) -> &str {
+        match self {
+            &Container::FragileSmall { name : ref name, .. } => name,
+            &Container::DurableSmall { name : ref name, .. } => name,
+            &Container::Large        { name : ref name, .. } => name,
+            &Container::Bed          { name : ref name, .. } => name,
+            &Container::Desk         { name : ref name, .. } => name
+        }
+    }
+    pub fn desc(&self) -> &str {
+        match self {
+            &Container::DurableSmall { description: ref desc, .. } => desc,
+            &Container::Large        { description: ref desc, .. } => desc,
+            &Container::Bed          { description: ref desc, .. } => desc,
+            &Container::Desk         { description: ref desc, .. } => desc,
+            &Container::FragileSmall { description: ref desc, broken: ref broken, broken_desc: ref broken_desc, .. } => {
+                if *broken { desc } else { broken_desc } 
+            }
+        }
+    }
 
     /// This is useful when a container that can hold a computer or any number of items / keys is needed immediately and definitely
     pub fn mk_desk() -> Container {
         match ContainerStringGenerator::new().gen.get("desk/") {
             Option::Some(gen) => {
                 let (name, desc) = gen.name_desc_pair();
-                Container::Desk { description: desc, computer: Option::None, items: vec![], keys: vec![] }
+                Container::Desk { name: name, description: desc, computer: Option::None, items: vec![], keys: vec![] }
             }
             Option::None      => panic!("Could not directly construct desk object! Closing program")
         }
@@ -152,7 +172,7 @@ impl Container {
         let container_type = container_types[rand::thread_rng().gen_range(0, container_types.len())];
         match (str_generator.gen.get(container_type), container_type) {
             (Option::None, _)     => { println!("Container type found: {}", &container_type); panic!("String generator was not populated correctly!")}, 
-            (Option::Some(g), "small_durable") => {
+            (Option::Some(g), "small_durable/") => { println!("Making small durable container");
                 let (name, desc) = g.name_desc_pair();
                 Container::DurableSmall {
                     name        : name,
@@ -160,7 +180,7 @@ impl Container {
                     item        : Option::None,
                 }
             }
-            (Option::Some(g), "small_fragile")  => { 
+            (Option::Some(g), "small_fragile/")  => { println!("making small fragile container");
                 let (name, desc) = g.name_desc_pair();
                 let (broken_desc, break_msg) = g.broken_str_pair();
                 Container::FragileSmall {
@@ -172,7 +192,7 @@ impl Container {
                     break_msg   : break_msg
                 }
             }
-            (Option::Some(g), "large") => {
+            (Option::Some(g), "large/") => { println!("making large container");
                 let (name, desc) = g.name_desc_pair();
                 Container::Large {
                     name        : name,
@@ -181,17 +201,19 @@ impl Container {
                     keys  : vec![]
                 }
             }
-            (Option::Some(g), "bed")  => {
-                let (_, desc) = g.name_desc_pair();
+            (Option::Some(g), "bed/")  => { println!("making bed");
+                let (name, desc) = g.name_desc_pair();
                 Container::Bed {
+                    name        : name,
                     description : desc,
                     item        : Option::None,
                     key         : Option::None
                 }
             }
-            (Option::Some(g), _) => {
-                let (_, desc) = g.name_desc_pair();
+            (Option::Some(g), _) => { println!("making desk");
+                let (name, desc) = g.name_desc_pair();
                 Container::Desk {
+                    name        : name,
                     description : desc,
                     computer    : Option::None,
                     items       : vec![],
@@ -210,17 +232,20 @@ impl Container {
 
 impl Describable for Container {
     fn print_name(&self) {
+        utils::printer(self.name())
+        /*
         match *self {
             Container::DurableSmall{ name: ref name, .. } => utils::printer(name),
             Container::FragileSmall{ name: ref name, .. } => utils::printer(name),
             Container::Large{ name: ref name, .. } => utils::printer(name),
-            Container::Bed{ .. } => println!("Who names a bed?"),
-            Container::Desk{ .. } => println!("You try naming a desk, ok? It's not easy")
-        }
+            Container::Bed{ name: ref name, .. } => println!("Who names a bed?"),
+            Container::Desk{ name: ref name.. } => println!("You try naming a desk, ok? It's not easy")
+        }*/
     }
 
     fn print_desc(&self) {
-        match *self {
+        utils::printer(self.desc())
+        /*match *self {
             Container::DurableSmall{ description: ref desc, .. } => utils::printer(desc),
             Container::Large{ description: ref desc, .. } => utils::printer(desc),
             Container::Bed{ description: ref desc, .. } => utils::printer(desc),
@@ -228,7 +253,7 @@ impl Describable for Container {
             Container::FragileSmall{ description: ref desc, broken_desc: ref broken_desc, broken: ref broken, .. } => {
                 if *broken { utils::printer(broken_desc) } else { utils::printer(desc) }
             }
-        }
+        }*/
     }
 }
 

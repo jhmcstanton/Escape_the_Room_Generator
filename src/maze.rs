@@ -46,7 +46,6 @@ impl InitialRoom {
             };
         }
         InitialRoom { containers: containers }
-
     }
 }
 
@@ -217,18 +216,18 @@ impl MazePath {
     
 }
 
+impl Searchable for InitialRoom {
+    fn containers<'a: 'b, 'b>(&'a self) -> &'b Vec<containers::Container> {
+        &self.containers
+    }
+}
+
 impl Searchable for MazePath {
-    fn search(&self) {
-        let containers = match *self {
-            MazePath::Room { containers: ref cs, .. } => cs,
-            MazePath::Connector { containers: ref cs, .. } => cs,
-            MazePath::Exit { containers: ref cs, .. } => cs
-        };
-        if containers.len() > 0 {
-            println!("The room contains various items")
-        }
-        for container in containers {
-            container.print_name()
+    fn containers<'a: 'b, 'b>(&'a self) -> &'b Vec<containers::Container> {
+        match self {
+            &MazePath::Room { containers: ref cs, .. } => cs,
+            &MazePath::Connector { containers: ref cs, .. } => cs,
+            &MazePath::Exit { containers: ref cs, .. } => cs
         }
     }
 }
@@ -241,7 +240,7 @@ impl<'a> Maze<'a> {
 
     pub fn help(&self) {
         println!("{}", "Commands:\n\tmove <room number or back> (move 0 and back are equivalent)\n\tinspect <item or room>".to_string() + 
-                 "\n\tsearch <item or room>\n\tbreak <item>\n\thelp \n\tquit")
+                 "\n\tsearch <item or room>\n\tbreak <item>\n\thelp \n\tquit") // Lol, I need to stop programming in the middle of the night
     }
 
     pub fn take_input(&mut self) -> bool {
@@ -254,12 +253,25 @@ impl<'a> Maze<'a> {
         //cmd.to_lowercase(); // this is an unstable feature in rust, nevertheless it would be nice to have in here
         let commands : Vec<&str> = cmd.split(|c: char| c == ' ' || c == '\n').collect();
         if commands.len() > 0 {
-            for c in &commands {
-                utils::printer(c);
-            }
             match commands[0] {
                 "quit" => { println!("You'll be back sooner or later"); true },
                 "help" => { self.help(); false },
+                "inspect" => { // this is really gros..
+                    if commands.len() > 1 {
+                        match commands[1] {
+                            "room" => {
+                                match self.player.pos {
+                                    Some(ref r) => r.search(),
+                                    None        => self.start.search()
+                                }
+                                //if self.player.pos.is_some() { self.player.pos.unwrap().search() } else { self.start.search() };                    
+                                false
+                            }
+                            _ => { println!("Uh... you see nothing!"); false } 
+                        }
+                    }
+                    else { println!("Uh, what did you want to look at?"); false }                                                           
+                }
                 s      => { println!("Try that one again, chief"); false }
             }
         }
@@ -269,11 +281,10 @@ impl<'a> Maze<'a> {
         }
         
     }
-    
-    /*pub fn move_player(&mut self) {
-        match self.player.pos {
-            Option::None => 
-        }
-    }*/
+
+    fn move_player(&mut self, room: Option<&'a MazePath>) {
+        self.player.previous_room = self.player.pos;
+        self.player.pos           = room;
+    }
 }
 

@@ -6,8 +6,8 @@ pub struct Player<'a> {
     name: String,
     keys: Vec<&'a items::Key>,
     items: Vec<&'a items::Item>,
-    pos  : Option<&'a maze::MazePath>,
-    previous_room: Option<&'a maze::MazePath>
+    pub pos  : Option<&'a maze::MazePath>,
+    pub previous_room: Option<&'a maze::MazePath>
 }
 
 impl<'a> Player<'a> {

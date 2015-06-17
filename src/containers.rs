@@ -222,38 +222,15 @@ impl Container {
             }
         }
     }
-
-    /*b fn add_key(&mut self, key : items::Key) {
-        match self {
-            &Container::DurableSmall{ 
-        }
-    }*/
 }
 
 impl Describable for Container {
     fn print_name(&self) {
         utils::printer(self.name())
-        /*
-        match *self {
-            Container::DurableSmall{ name: ref name, .. } => utils::printer(name),
-            Container::FragileSmall{ name: ref name, .. } => utils::printer(name),
-            Container::Large{ name: ref name, .. } => utils::printer(name),
-            Container::Bed{ name: ref name, .. } => println!("Who names a bed?"),
-            Container::Desk{ name: ref name.. } => println!("You try naming a desk, ok? It's not easy")
-        }*/
     }
 
     fn print_desc(&self) {
         utils::printer(self.desc())
-        /*match *self {
-            Container::DurableSmall{ description: ref desc, .. } => utils::printer(desc),
-            Container::Large{ description: ref desc, .. } => utils::printer(desc),
-            Container::Bed{ description: ref desc, .. } => utils::printer(desc),
-            Container::Desk{ description: ref desc, .. } => utils::printer(desc),
-            Container::FragileSmall{ description: ref desc, broken_desc: ref broken_desc, broken: ref broken, .. } => {
-                if *broken { utils::printer(broken_desc) } else { utils::printer(desc) }
-            }
-        }*/
     }
 }
 

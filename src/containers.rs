@@ -130,6 +130,17 @@ impl Container {
         containers
     }
 
+    /// This is useful when a container that can hold a computer or any number of items / keys is needed immediately and definitely
+    pub fn mk_desk() -> Container {
+        match ContainerStringGenerator::new().gen.get("desk/") {
+            Option::Some(gen) => {
+                let (name, desc) = gen.name_desc_pair();
+                Container::Desk { description: desc, computer: Option::None, items: vec![], keys: vec![] }
+            }
+            Option::None      => panic!("Could not directly construct desk object! Closing program")
+        }
+    }
+
     fn from_num(str_generator: &ContainerStringGenerator, n: u32) -> Container { 
         let container_types    = vec![
             "bed/",

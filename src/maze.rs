@@ -36,17 +36,15 @@ pub struct InitialRoom{
 
 impl InitialRoom {
     pub fn new(keys: Vec<items::Key>) -> InitialRoom {
-        //let mut temp_keys = vec![];
         let mut containers = containers::Container::generate();
-        
-        //while keys.len() > 0 { // this could loop forever
+        // forcing a desk *should* make all keys insert as expected, since it can hold any number of keys
+        containers.push(containers::Container::mk_desk()); 
         for key in keys {
-            match MazePath::try_place_key(&1, key, &mut containers) {
-                Some(k) => panic!("Unable to play all keys in initial room! Please restart!"),//keys.push(k), // cannot push like this
+            match MazePath::try_place_key(&0, key, &mut containers) {
+                Some(k) => panic!("Unable to play all keys in initial room! Please restart!"),
                 None    => ()
             };
         }
-        //}
         InitialRoom { containers: containers }
 
     }
@@ -176,7 +174,7 @@ impl MazePath {
         (path, keys)
     }
 
-    
+    /// Rolls a 1d100 to see if the key is in this room, and places it here if possible. Otherwise, it returns None. 
     pub fn try_place_key(chance_key_here: &u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
         let p : u32 = rand::thread_rng().gen_range(0, 100); 
         if  p < *chance_key_here {

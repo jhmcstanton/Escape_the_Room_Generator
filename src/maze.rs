@@ -264,7 +264,6 @@ impl<'a> Maze<'a> {
                                     Some(ref r) => r.search(),
                                     None        => self.start.search()
                                 }
-                                //if self.player.pos.is_some() { self.player.pos.unwrap().search() } else { self.start.search() };                    
                                 false
                             }
                             _ => { println!("Uh... you see nothing!"); false } 

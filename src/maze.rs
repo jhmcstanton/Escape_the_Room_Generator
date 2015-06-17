@@ -30,7 +30,27 @@ pub struct Exit {
     id: u32
 }
 
-pub struct InitialRoom;
+pub struct InitialRoom{
+    containers: Vec<containers::Container>,
+}
+
+impl InitialRoom {
+    pub fn new(keys: Vec<items::Key>) -> InitialRoom {
+        //let mut temp_keys = vec![];
+        let mut containers = containers::Container::generate();
+        
+        //while keys.len() > 0 { // this could loop forever
+        for key in keys {
+            match MazePath::try_place_key(&1, key, &mut containers) {
+                Some(k) => panic!("Unable to play all keys in initial room! Please restart!"),//keys.push(k), // cannot push like this
+                None    => ()
+            };
+        }
+        //}
+        InitialRoom { containers: containers }
+
+    }
+}
 
 pub enum MazePath {
     Room {
@@ -157,7 +177,7 @@ impl MazePath {
     }
 
     
-    fn try_place_key(chance_key_here: &u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
+    pub fn try_place_key(chance_key_here: &u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
         let p : u32 = rand::thread_rng().gen_range(0, 100); 
         if  p < *chance_key_here {
             for container in containers {
@@ -218,7 +238,7 @@ impl Searchable for MazePath {
 impl<'a> Maze<'a> {
     pub fn new(num_rooms: u32, player_name: String) -> Maze<'a> {
         let (maze_path, keys) = MazePath::new(num_rooms);
-        Maze { start: InitialRoom, maze: maze_path, player: Player::new(player_name) }
+        Maze { start: InitialRoom::new(keys), maze: maze_path, player: Player::new(player_name) }
     }
 
     pub fn help(&self) {

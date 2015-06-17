@@ -74,25 +74,39 @@ impl Door {
 }
 
 impl MazePath {
-    fn new(additional_rooms: u32) -> MazePath{
+    fn new(additional_rooms: u32) -> (MazePath, Vec<items::Key>){
         let max_rooms_attached = 3;
         let key_here_chance = 50;
         let current_key = 0;
         let container_generator = containers::ContainerStringGenerator::new();
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
-            fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) ->
-                (MazePath, u32, Vec<items::Key>) { 
+        fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath, u32, Vec<items::Key>) {
             if additional_rooms == 0 {
+                let mut containers = containers::Container::generate();
+                let mut keys_to_place = vec![];
+                let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
+                match MazePath::try_place_key(key_here_chance, door_key, &mut containers) {
+                    Some(k) => keys_to_place.push(k),
+                    None    => ()
+                };
+                
                 if exit_here {
                     println!("Exit here!");
-                    let (exit, exit_key) = Exit::new("".to_string(), "".to_string(), current_key); // update when container generator is ready
                     let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
-                    (MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate() }, current_key + 2, vec![door_key, exit_key])
+                    let (exit, exit_key) = Exit::new("".to_string(), "".to_string(), current_key + 2);
+                    
+                    match MazePath::try_place_key(key_here_chance, exit_key, &mut containers) {
+                        Some(k) => keys_to_place.push(k),
+                        None    => ()
+                    };
+                    
+                    (MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate() }
+                     , current_key + 2, keys_to_place)
                 }
                 else {
                     println!("made a room");
-                    let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
-                    (MazePath::Room { door: door, containers: containers::Container::generate() }, current_key + 1, vec![door_key])
+
+                    (MazePath::Room { door: door, containers: containers::Container::generate() }, current_key + 1, keys_to_place)
                 }
             }
             else {
@@ -139,17 +153,13 @@ impl MazePath {
             }
         }
         let (path, _, keys) = build(additional_rooms, true, &max_rooms_attached, &key_here_chance, current_key);
-        if keys.len() != 0 { // when keys are placed this should be keys.len == 0
-            println!("Number of keys generated: {}", keys.len());
-            path
-        }
-        else {
-            panic!("No keys generated!") // this should panic for keys existing at this level once item generation is done
-        }
+        (path, keys)
     }
 
-    fn try_place_key(chance_key_here: u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
-        if rand::thread_rng().gen_range(0, 100) < chance_key_here {
+    
+    fn try_place_key(chance_key_here: &u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
+        let p : u32 = rand::thread_rng().gen_range(0, 100); 
+        if  p < *chance_key_here {
             for container in containers {
                 match container {
                     &mut containers::Container::DurableSmall{ item: ref mut i, .. } => {
@@ -207,7 +217,8 @@ impl Searchable for MazePath {
 
 impl<'a> Maze<'a> {
     pub fn new(num_rooms: u32, player_name: String) -> Maze<'a> {
-        Maze { start: InitialRoom, maze: MazePath::new(num_rooms), player: Player::new(player_name) }
+        let (maze_path, keys) = MazePath::new(num_rooms);
+        Maze { start: InitialRoom, maze: maze_path, player: Player::new(player_name) }
     }
 
     pub fn help(&self) {

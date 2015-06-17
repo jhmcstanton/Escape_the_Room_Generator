@@ -21,31 +21,19 @@ impl<'a> Player<'a> {
     }
 
     pub fn add_key(&mut self, key: &'a items::Key) {
-        self.keys.push(key); /*
-        match key {
-            &items::Key::Key{ .. } => self.keys.push(key),
-            _ => panic!("Cannot add item into key inventory!")
-        } */
+        self.keys.push(key); 
     }
 
     pub fn add_item(&mut self, item: &'a items::Item) {
         self.items.push(item);
-        /*match item {
-            &items::Item::Key { .. } => panic!("Keys cannot be added into item inventory, only key inventory"),
-            _ => self.items.push(item)
-        }*/
     }
 
     pub fn list_keys(&self) {
-        for key in self.keys.iter() {
-            key.print_name()
-        }
+        self.keys.iter().map(|k| k.print_name());
     }
 
     pub fn list_items(&self) {
-        for item in self.items.iter() {
-            item.print_name()
-        }
+        self.items.iter().map(|i| i.print_name());
     }
 
     // Lists both items and keys, may be useful for the UI

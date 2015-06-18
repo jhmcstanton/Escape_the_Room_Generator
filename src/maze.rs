@@ -216,14 +216,14 @@ impl MazePath {
     
 }
 
-impl Searchable for InitialRoom {
-    fn containers<'a: 'b, 'b>(&'a self) -> &'b Vec<containers::Container> {
+impl Searchable<containers::Container> for InitialRoom {
+    fn items(& self) -> &Vec<containers::Container> {
         &self.containers
     }
 }
 
-impl Searchable for MazePath {
-    fn containers<'a: 'b, 'b>(&'a self) -> &'b Vec<containers::Container> {
+impl Searchable<containers::Container> for MazePath {
+    fn items(& self) -> & Vec<containers::Container> {
         match self {
             &MazePath::Room { containers: ref cs, .. } => cs,
             &MazePath::Connector { containers: ref cs, .. } => cs,
@@ -260,13 +260,20 @@ impl<'a> Maze<'a> {
                     if commands.len() > 1 {
                         match commands[1] {
                             "room" => {
+                                println!("You see {} doors.", match self.player.pos {
+                                    None => 1,
+                                    Some(&MazePath::Exit{ .. } ) => 2,
+                                    Some(&MazePath::Room{ .. } ) => 1,
+                                    Some(&MazePath::Connector{ other_rooms: ref rs, .. }) => rs.len() + 1 
+                                });
                                 match self.player.pos {
                                     Some(ref r) => r.search(),
                                     None        => self.start.search()
                                 }
+                                
                                 false
                             }
-                            _ => { println!("Uh... you see nothing!"); false } 
+                            s => { println!("ASASD"); false } 
                         }
                     }
                     else { println!("Uh, what did you want to look at?"); false }                                                           

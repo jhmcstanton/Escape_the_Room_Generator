@@ -1,5 +1,6 @@
 use containers;
 
+
 pub trait Describable {
     fn print_name(&self) ;
     fn print_desc (&self) ;
@@ -10,16 +11,16 @@ pub trait Breakable {
 }
 
 // intended for rooms or things containing container objects
-pub trait Searchable {
-    fn containers<'a: 'b, 'b>(&'a self) -> &'b Vec<containers::Container>;
+pub trait Searchable<T: Describable> {
+    fn items(&self) -> &Vec<T>;
     
     fn search(&self) {
-        let containers = self.containers();
-        if containers.len() > 0 {
-            println!("The room contains various items")
+        let items : &Vec<T> = self.items();
+        if items.len() > 0 {
+            println!("You see:")
         }
-        for container in containers {
-            container.print_name()
+        for item in items {
+            item.print_name()
         }
     }
 }

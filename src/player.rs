@@ -1,13 +1,13 @@
 use traits::{Describable};
 use items;
-use maze;
+use mazepath;
 
 pub struct Player<'a> {
     name: String,
     keys: Vec<&'a items::Key>,
     items: Vec<&'a items::Item>,
-    pub pos  : Option<&'a maze::MazePath>,
-    pub previous_room: Option<&'a maze::MazePath>
+    pub pos  : Option<&'a mazepath::MazePath>,
+    pub previous_room: Option<&'a mazepath::MazePath>
 }
 
 impl<'a> Player<'a> {
@@ -15,7 +15,7 @@ impl<'a> Player<'a> {
         Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
     }
 
-    pub fn traverse(&mut self, next_room: &'a maze::MazePath) {
+    pub fn traverse(&mut self, next_room: &'a mazepath::MazePath) {
         self.previous_room = self.pos;
         self.pos = Option::Some(next_room);
     }

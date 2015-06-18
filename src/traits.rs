@@ -1,6 +1,3 @@
-use containers;
-
-
 pub trait Describable {
     fn print_name(&self) ;
     fn print_desc (&self) ;

@@ -214,7 +214,7 @@ impl MazePath {
 
 impl Searchable<containers::Container> for InitialRoom {
     fn items(&self) -> &Vec<containers::Container> {
-        &self.containers
+        &self.containers //.copy() ?
     }
 }
 

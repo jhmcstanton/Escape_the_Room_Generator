@@ -3,6 +3,7 @@ extern crate std;
 use std::io;
 use std::io::Write;
 
+use utils;
 use mazepath::MazePath;
 use mazepath::InitialRoom;
 use player::Player;
@@ -39,38 +40,47 @@ impl<'a> Maze<'a> {
             match commands[0] {
                 "quit" => { println!("You'll be back sooner or later"); true },
                 "help" => { self.help(); false },
-                "inspect" => { // this is really gros..
-                    if commands.len() > 1 {
-                        match commands[1] {
-                            "room" => {
-                                println!("You see {} doors.", match self.player.pos {
-                                    None => 1,
-                                    Some(&MazePath::Exit{ .. } ) => 2,
-                                    Some(&MazePath::Room{ .. } ) => 1,
-                                    Some(&MazePath::Connector{ other_rooms: ref rs, .. }) => rs.len() + 1 
-                                });
-                                match self.player.pos {
-                                    Some(ref r) => r.search(),
-                                    None        => self.start.search()
-                                }
-                                
-                                false
-                            }
-                            s => { println!("ASASD"); false } 
-                        }
-                    }
-                    else { println!("Uh, what did you want to look at?"); false }                                                           
+                "inspect" => { // this is really gross..
+                    self.inspect(commands)  
                 }
-                s      => { println!("Try that one again, chief"); false }
+                s      => self.bad_cmd("Try that one again, chief")
             }
         }
         else {
-            println!("Give me a command!");
-            false 
+            self.bad_cmd("Give me a command!")
         }
         
     }
 
+    fn inspect(&self, commands: Vec<&str>) -> bool {
+        if commands.len() > 1 {
+            match commands[1] {
+                "room" => {
+                    println!("You see {} doors.", match self.player.pos {
+                        None => 1,
+                        Some(&MazePath::Exit{ .. } ) => 2,
+                        Some(&MazePath::Room{ .. } ) => 1,
+                        Some(&MazePath::Connector{ other_rooms: ref rs, .. }) => rs.len() + 1 
+                    });
+                    match self.player.pos {
+                        Some(ref r) => r.search(),
+                        None        => self.start.search()
+                    }
+                    
+                    false
+                }
+                s => self.bad_cmd("Uh, this is weird. Try that again") 
+            }
+        }
+        else {
+            self.bad_cmd("Uh, what did you want to look at?")
+        }
+    }
+    
+    fn bad_cmd(&self, msg: &str) -> bool {
+        utils::printer(msg);
+        false
+    }
     fn move_player(&mut self, room: Option<&'a MazePath>) {
         self.player.previous_room = self.player.pos;
         self.player.pos           = room;

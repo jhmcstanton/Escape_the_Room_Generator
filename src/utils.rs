@@ -6,6 +6,8 @@ use std::io::BufReader;
 use std::io::BufRead;
 use std::fmt::Display;
 
+use traits::{ Describable };
+
 pub fn printer(str: &str) -> () {
     println!("{}", str)
 }
@@ -22,10 +24,21 @@ pub enum Either<A, B> {
     Right(B)
 }
 
-/*pub enum Possibly<A, B> {
-    Some(Either<A, B>),
-    None
-}*/
+impl<A: Describable, B: Describable> Describable for Either<A, B> {
+    fn print_name(&self) {
+        match self {
+            &Either::Left(ref a)  => a.print_name(),
+            &Either::Right(ref b) => b.print_name()
+        }
+    }
+    fn print_desc(&self) {
+        match self {
+            &Either::Left(ref a)  => a.print_desc(),
+            &Either::Right(ref b) => b.print_desc()
+        }
+    }
+}
+
 pub type Possibly<A, B> = Option<Either<A, B>>;
 
 pub enum WordClass {

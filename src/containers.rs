@@ -259,3 +259,48 @@ impl Describable for Computer {
         utils::printer(&self.desc)
     }
 }
+
+impl Searchable<utils::Either<items::Key, items::Item>> for Container {
+    fn items(&self) -> &Vec<utils::Either<items::Key, items::Item>> {
+        match self {
+            &Container::DurableSmall { item : ref op, .. } => {
+                match op {
+                    &None        => &vec![],
+                    &Some(ref i) => &vec![*i]
+                }
+            }
+            &Container::FragileSmall { item : ref op, .. } => {
+                match op {
+                    &None        => &vec![],
+                    &Some(ref i) => &vec![*i],
+                }
+            }
+            &Container::Bed { item: ref i, key : ref k, .. } => {
+                match (i, k) {
+                    (&None, &None) => &vec![],
+                    (&None, &Some(ref k)) => &vec![utils::Either::Left(*k)],
+                    (&Some(ref i), &None) => &vec![utils::Either::Right(*i)],
+                    (&Some(ref i), &Some(ref k)) => &vec![utils::Either::Left(*k), utils::Either::Right(*i)]
+                }
+            }
+            &Container::Large { items: ref items, keys: ref keys, .. } => {
+                &items
+                    .iter()
+                    .map(|i| utils::Either::Right(*i))
+                    .chain(keys
+                           .iter()
+                           .map(|k| utils::Either::Left(*k)))
+                    .collect()
+            }
+            &Container::Desk { items: ref items, keys: ref keys, .. } => {
+                &items
+                    .iter()
+                    .map(|i| utils::Either::Right(*i))
+                    .chain(keys
+                           .iter()
+                           .map(|k| utils::Either::Left(*k)))
+                    .collect()
+            }
+        }
+    }
+}

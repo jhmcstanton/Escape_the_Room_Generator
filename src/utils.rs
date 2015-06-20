@@ -19,6 +19,7 @@ pub fn kill_with_file_error<E: Display>(file_name: &str, error: E) {
 }
 
 // hand rolled either type since Result is semantically different
+#[derive (Clone)]
 pub enum Either<A, B> {
     Left(A),
     Right(B)

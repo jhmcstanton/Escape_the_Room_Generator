@@ -1,20 +1,15 @@
-use std::marker::Copy;
-
 use traits::{Breakable, Describable};
 use utils;
 
-
+#[derive (Clone)]
 pub enum Item {
-    #[derive (Copy)]
     DurableItem { name: String, description: String },
-    #[derive (Copy)]
     FragileItem { name: String, description: String, broken: bool, break_msg: String, broken_desc: String }
 }
 
+#[derive (Clone)]
 pub enum Key {
-    #[derive (Copy)]
     Key { name: String, description: String, id: u32 },
-    #[derive (Copy)]
     Password { id: u32, used: bool } 
 }
 

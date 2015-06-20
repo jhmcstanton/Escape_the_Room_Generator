@@ -12,6 +12,7 @@ use items;
 use utils;
 use utils::{Either, Possibly, StringGenerator};
 
+#[derive (Clone)]
 pub enum Container {
     DurableSmall { name: String, description: String, item: Possibly<items::Key, items::Item> },
     FragileSmall { name: String, description: String, item: Possibly<items::Key, items::Item>, broken: bool, break_msg: String, broken_desc: String },
@@ -20,6 +21,7 @@ pub enum Container {
     Desk { name: String, description: String, computer: Option<Computer>, items: Vec<items::Item>, keys: Vec<items::Key>}
 }
 
+#[derive (Clone)]
 pub struct Computer {
     name: String,
     desc: String,
@@ -261,44 +263,44 @@ impl Describable for Computer {
 }
 
 impl Searchable<utils::Either<items::Key, items::Item>> for Container {
-    fn items(&self) -> &Vec<utils::Either<items::Key, items::Item>> {
+    fn items(&self) -> Vec<utils::Either<items::Key, items::Item>> {
         match self {
             &Container::DurableSmall { item : ref op, .. } => {
                 match op {
-                    &None        => &vec![],
-                    &Some(ref i) => &vec![*i]
+                    &None        => vec![],
+                    &Some(ref i) => vec![i.clone()]
                 }
             }
             &Container::FragileSmall { item : ref op, .. } => {
                 match op {
-                    &None        => &vec![],
-                    &Some(ref i) => &vec![*i],
+                    &None        => vec![],
+                    &Some(ref i) => vec![i.clone()],
                 }
             }
             &Container::Bed { item: ref i, key : ref k, .. } => {
                 match (i, k) {
-                    (&None, &None) => &vec![],
-                    (&None, &Some(ref k)) => &vec![utils::Either::Left(*k)],
-                    (&Some(ref i), &None) => &vec![utils::Either::Right(*i)],
-                    (&Some(ref i), &Some(ref k)) => &vec![utils::Either::Left(*k), utils::Either::Right(*i)]
+                    (&None, &None) => vec![],
+                    (&None, &Some(ref k)) => vec![utils::Either::Left(k.clone())],
+                    (&Some(ref i), &None) => vec![utils::Either::Right(i.clone())],
+                    (&Some(ref i), &Some(ref k)) => vec![utils::Either::Left(k.clone()), utils::Either::Right(i.clone())]
                 }
             }
             &Container::Large { items: ref items, keys: ref keys, .. } => {
-                &items
+                items
                     .iter()
-                    .map(|i| utils::Either::Right(*i))
+                    .map(|i| utils::Either::Right(i.clone()))
                     .chain(keys
                            .iter()
-                           .map(|k| utils::Either::Left(*k)))
+                           .map(|k| utils::Either::Left(k.clone())))
                     .collect()
             }
             &Container::Desk { items: ref items, keys: ref keys, .. } => {
-                &items
+                items
                     .iter()
-                    .map(|i| utils::Either::Right(*i))
+                    .map(|i| utils::Either::Right(i.clone()))
                     .chain(keys
                            .iter()
-                           .map(|k| utils::Either::Left(*k)))
+                           .map(|k| utils::Either::Left(k.clone())))
                     .collect()
             }
         }

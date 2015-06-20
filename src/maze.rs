@@ -52,7 +52,7 @@ impl<'a> Maze<'a> {
         
     }
 
-    fn inspect(&self, commands: Vec<&str>) -> bool {
+    fn inspect(&self, mut commands: Vec<&str>) -> bool {
         if commands.len() > 1 {
             match commands[1] {
                 "room" => {
@@ -69,7 +69,30 @@ impl<'a> Maze<'a> {
                     
                     false
                 }
-                s => self.bad_cmd("Uh, this is weird. Try that again") 
+                _ => {
+                    commands.remove(0);
+                    let mut init_str = commands.remove(0);
+                    let item_name = commands.iter().fold(init_str.to_string(), |acc, w| acc + w);
+                    
+                    let cs = match self.player.pos {
+                        None => self.start.items(),
+                        Some(r) => r.items()
+                    };
+                    println!("Item to search: {}", item_name);
+                    for c in &cs {
+                        println!("Item name: {}", c.name());
+                        if c.name() == item_name {
+                            println!("Going to search!");
+                            c.search();
+                            println!("Searched!");
+                            break
+                        }
+                        else {
+                            println!("Cmd len: {}, nam len: {}", item_name.len(), c.name().len());
+                        }
+                    }
+                    false
+                }
             }
         }
         else {

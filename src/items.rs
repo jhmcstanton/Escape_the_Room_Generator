@@ -31,8 +31,8 @@ impl<'a> Describable for Key {
 impl Describable for Item {
     fn print_name(&self) -> () {
         match self {
-            &Item::DurableItem{ name: ref name, .. } => utils::printer(name),
-            &Item::FragileItem{ name: ref name, .. } => utils::printer(name)
+            &Item::DurableItem{ name: ref name, .. } => println!("WTH"),//utils::printer(name),
+            &Item::FragileItem{ name: ref name, .. } => println!("UGH") //utils::printer(name)
         }
     }
     fn print_desc(&self) -> () {

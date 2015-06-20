@@ -1,11 +1,10 @@
 extern crate rand;
-extern crate std; 
+extern crate std;
 
 use rand::Rng;
 use std::cmp;
 use std::io;
 use std::io::Write;
-use std::convert::AsRef;
 
 use items;
 use containers;
@@ -213,17 +212,17 @@ impl MazePath {
 }
 
 impl Searchable<containers::Container> for InitialRoom {
-    fn items(&self) -> &Vec<containers::Container> {
-        &self.containers //.copy() ?
+    fn items(&self) -> Vec<containers::Container> {
+        self.containers.clone() 
     }
 }
 
 impl Searchable<containers::Container> for MazePath {
-    fn items(&self) -> &Vec<containers::Container> {
+    fn items(&self) -> Vec<containers::Container> {
         match self {
-            &MazePath::Room { containers: ref cs, .. } => cs,
-            &MazePath::Connector { containers: ref cs, .. } => cs,
-            &MazePath::Exit { containers: ref cs, .. } => cs
+            &MazePath::Room { containers: ref cs, .. } => cs.clone(),
+            &MazePath::Connector { containers: ref cs, .. } => cs.clone(),
+            &MazePath::Exit { containers: ref cs, .. } => cs.clone()
         }
     }
 }

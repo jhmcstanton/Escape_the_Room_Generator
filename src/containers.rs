@@ -14,11 +14,11 @@ use utils::{Either, Possibly, StringGenerator};
 
 #[derive (Clone)]
 pub enum Container {
-    DurableSmall { name: String, description: String, item: Possibly<items::Key, items::Item> },
-    FragileSmall { name: String, description: String, item: Possibly<items::Key, items::Item>, broken: bool, break_msg: String, broken_desc: String },
-    Large { name: String, description: String, items: Vec<items::Item>, keys: Vec<items::Key> },
-    Bed { name: String, description: String, item: Option<items::Item>, key: Option<items::Key> },
-    Desk { name: String, description: String, computer: Option<Computer>, items: Vec<items::Item>, keys: Vec<items::Key>}
+    DurableSmall { name: String, description: String, item: Possibly<items::Item, items::Key> },
+    FragileSmall { name: String, description: String, item: Possibly<items::Item, items::Key>, broken: bool, break_msg: String, broken_desc: String },
+    Large { name: String, description: String, items: Vec<Either<items::Item, items::Key>> },//Vec<items::Item>, keys: Vec<items::Key> },
+    Bed { name: String, description: String, item: Possibly<items::Item, items::Key> }, //Option<items::Item>, key: Option<items::Key> },
+    Desk { name: String, description: String, computer: Option<Computer>, items: Vec<Either<items::Item, items::Key>> } //Vec<items::Item>, keys: Vec<items::Key>}
 }
 
 #[derive (Clone)]
@@ -131,33 +131,13 @@ impl Container {
         }
         containers
     }
-    pub fn name(&self) -> &str {
-        match self {
-            &Container::FragileSmall { name : ref name, .. } => name,
-            &Container::DurableSmall { name : ref name, .. } => name,
-            &Container::Large        { name : ref name, .. } => name,
-            &Container::Bed          { name : ref name, .. } => name,
-            &Container::Desk         { name : ref name, .. } => name
-        }
-    }
-    pub fn desc(&self) -> &str {
-        match self {
-            &Container::DurableSmall { description: ref desc, .. } => desc,
-            &Container::Large        { description: ref desc, .. } => desc,
-            &Container::Bed          { description: ref desc, .. } => desc,
-            &Container::Desk         { description: ref desc, .. } => desc,
-            &Container::FragileSmall { description: ref desc, broken: ref broken, broken_desc: ref broken_desc, .. } => {
-                if *broken { desc } else { broken_desc } 
-            }
-        }
-    }
 
     /// This is useful when a container that can hold a computer or any number of items / keys is needed immediately and definitely
     pub fn mk_desk() -> Container {
         match ContainerStringGenerator::new().gen.get("desk/") {
             Option::Some(gen) => {
                 let (name, desc) = gen.name_desc_pair();
-                Container::Desk { name: name, description: desc, computer: Option::None, items: vec![], keys: vec![] }
+                Container::Desk { name: name, description: desc, computer: Option::None, items: vec![] }
             }
             Option::None      => panic!("Could not directly construct desk object! Closing program")
         }
@@ -199,8 +179,7 @@ impl Container {
                 Container::Large {
                     name        : name,
                     description : desc,
-                    items : vec![],
-                    keys  : vec![]
+                    items : vec![]
                 }
             }
             (Option::Some(g), "bed/")  => { println!("making bed");
@@ -208,8 +187,7 @@ impl Container {
                 Container::Bed {
                     name        : name,
                     description : desc,
-                    item        : Option::None,
-                    key         : Option::None
+                    item        : Option::None
                 }
             }
             (Option::Some(g), _) => { println!("making desk");
@@ -218,8 +196,7 @@ impl Container {
                     name        : name,
                     description : desc,
                     computer    : Option::None,
-                    items       : vec![],
-                    keys        : vec![]
+                    items       : vec![]
                 }
             }
         }
@@ -228,10 +205,24 @@ impl Container {
 
 impl Describable for Container {
     fn name(&self) -> String {
-        self.name().to_string()
+        match self {
+            &Container::FragileSmall { name : ref name, .. } => name.to_string(),
+            &Container::DurableSmall { name : ref name, .. } => name.to_string(),
+            &Container::Large        { name : ref name, .. } => name.to_string(),
+            &Container::Bed          { name : ref name, .. } => name.to_string(),
+            &Container::Desk         { name : ref name, .. } => name.to_string()
+        }
     }
     fn desc(&self) -> String {
-        self.desc().to_string()
+        match self {
+            &Container::DurableSmall { description: ref desc, .. } => desc.to_string(),
+            &Container::Large        { description: ref desc, .. } => desc.to_string(),
+            &Container::Bed          { description: ref desc, .. } => desc.to_string(),
+            &Container::Desk         { description: ref desc, .. } => desc.to_string(),
+            &Container::FragileSmall { description: ref desc, broken: ref broken, broken_desc: ref broken_desc, .. } => {
+                if *broken { desc.to_string() } else { broken_desc.to_string() } 
+            }
+        }
     }
 }
 
@@ -261,8 +252,8 @@ impl Describable for Computer {
     }
 }
 
-impl Searchable<utils::Either<items::Key, items::Item>> for Container {
-    fn items(&self) -> Vec<utils::Either<items::Key, items::Item>> {
+impl Searchable<utils::Either<items::Item, items::Key>> for Container {
+    fn items(&self) -> Vec<utils::Either<items::Item, items::Key>> {
         match self {
             &Container::DurableSmall { item : ref op, .. } => {
                 match op {
@@ -276,30 +267,22 @@ impl Searchable<utils::Either<items::Key, items::Item>> for Container {
                     &Some(ref i) => vec![i.clone()],
                 }
             }
-            &Container::Bed { item: ref i, key : ref k, .. } => {
-                match (i, k) {
-                    (&None, &None) => vec![],
-                    (&None, &Some(ref k)) => vec![utils::Either::Left(k.clone())],
-                    (&Some(ref i), &None) => vec![utils::Either::Right(i.clone())],
-                    (&Some(ref i), &Some(ref k)) => vec![utils::Either::Left(k.clone()), utils::Either::Right(i.clone())]
+            &Container::Bed { item: ref i, .. } => {
+                match i {
+                    &None => vec![],
+                    &Some(ref i) => vec![i.clone()],                   
                 }
             }
-            &Container::Large { items: ref items, keys: ref keys, .. } => {
+            &Container::Large { items: ref items, .. } => {
                 items
                     .iter()
-                    .map(|i| utils::Either::Right(i.clone()))
-                    .chain(keys
-                           .iter()
-                           .map(|k| utils::Either::Left(k.clone())))
+                    .map(|i| i.clone())
                     .collect()
             }
-            &Container::Desk { items: ref items, keys: ref keys, .. } => {
+            &Container::Desk { items: ref items, .. } => {
                 items
                     .iter()
-                    .map(|i| utils::Either::Right(i.clone()))
-                    .chain(keys
-                           .iter()
-                           .map(|k| utils::Either::Left(k.clone())))
+                    .map(|i| i.clone())
                     .collect()
             }
         }

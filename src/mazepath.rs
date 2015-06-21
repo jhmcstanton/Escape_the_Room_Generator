@@ -202,27 +202,27 @@ impl MazePath {
                     &mut containers::Container::DurableSmall{ item: ref mut i, .. } => {
                         match i {
                             &mut Option::Some(_) => (),
-                            _ => i = { Option::Some(key); return Option::None }
+                            _ =>  { *i = Option::Some(Either::Right(key)); return Option::None }
                         }                        
                     }
                     &mut containers::Container::FragileSmall { item: ref mut i, .. } => {
                         match i {
                             &mut Option::Some(_) => (),
-                            _ => i = { Option::Some(key); return Option::None } 
+                            _ =>  { *i = Option::Some(Either::Right(key)); return Option::None } 
                         }
                     }
-                    &mut containers::Container::Bed { key: ref mut k, .. } => {
+                    &mut containers::Container::Bed { item: ref mut k, .. } => {
                         match k {
                             &mut Option::Some(_) => (),
-                            _               => key = { Option::Some(k); return Option::None }
+                            _               => { *k = Option::Some(utils::Either::Right(key)); return Option::None }
                         }
                     }
-                    &mut containers::Container::Large { keys: ref mut ks, .. } => {
-                        ks.push(key);
+                    &mut containers::Container::Large { items: ref mut ks, .. } => {
+                        ks.push(Either::Right(key));
                         return Option::None
                     }
-                    &mut containers::Container::Desk { keys: ref mut ks, .. } => {
-                        ks.push(key);
+                    &mut containers::Container::Desk { items: ref mut ks, .. } => {
+                        ks.push(Either::Right(key));
                         return Option::None
                     }
                 }

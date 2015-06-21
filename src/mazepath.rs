@@ -34,8 +34,8 @@ impl InitialRoom {
         // forcing a desk *should* make all keys insert as expected, since it can hold any number of keys
         containers.push(containers::Container::mk_desk()); 
         for key in keys {
-            match MazePath::try_place_key(&0, key, &mut containers) {
-                Some(k) => panic!("Unable to play all keys in initial room! Please restart!"),
+            match MazePath::try_place_key(&100, key, &mut containers) {
+                Some(k) => panic!("Unable to place all keys in initial room! Please restart!"),
                 None    => ()
             };
         }
@@ -84,7 +84,15 @@ impl Door {
     }
 }
 
-impl MazePath {    
+impl MazePath {
+    pub fn containers(&self) -> &Vec<containers::Container> {
+        match self {
+            &MazePath::Connector { containers: ref cs, .. } => cs,
+            &MazePath::Room      { containers: ref cs, .. } => cs,
+            &MazePath::Exit      { containers: ref cs, .. } => cs
+        }
+    }
+    
     pub fn new(additional_rooms: u32) -> (MazePath, Vec<items::Key>){
         let max_rooms_attached = 3;
         let key_here_chance = 50;
@@ -95,29 +103,26 @@ impl MazePath {
         fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath, u32, Vec<items::Key>) {
             if additional_rooms == 0 {
                 let mut containers = containers::Container::generate();
-                let mut keys_to_place = vec![];
-                let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
-                match MazePath::try_place_key(key_here_chance, door_key, &mut containers) {
-                    Some(k) => keys_to_place.push(k),
-                    None    => ()
-                };
+                let (door, door_key) = Door::new("Silver key".to_string(), "A simple key for a simple lock.".to_string(), current_key);
+                let mut keys_to_place = vec![door_key];
                 
                 if exit_here {
                     println!("Exit here!");
-                    let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
-                    let (exit, exit_key) = Exit::new("".to_string(), "".to_string(), current_key + 2);
+                    //let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
+                    let (exit, exit_key) = Exit::new("Skeleton key.".to_string(), "A spooky skeleton key.".to_string(), current_key + 2);
                     
                     match MazePath::try_place_key(key_here_chance, exit_key, &mut containers) {
                         Some(k) => keys_to_place.push(k),
                         None    => ()
                     };
                     
+                    println!("In exit made {} keys.", keys_to_place.len()); //expect 1 or 2
                     (MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate() }
                      , current_key + 2, keys_to_place)
                 }
                 else {
                     println!("made a room");
-
+                    println!("In room made {} keys.", keys_to_place.len()); // expect 1
                     (MazePath::Room { door: door, containers: containers::Container::generate() }, current_key + 1, keys_to_place)
                 }
             }
@@ -127,11 +132,13 @@ impl MazePath {
                 println!("Branch with exit: {}", branch_with_exit);
                 let mut rooms_left = additional_rooms - attached_room_count;
                 let mut rooms_here = 0;
-                let mut keys_to_add = vec![];
 
-                let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key);
+                let (door, door_key) = Door::new("Brass key".to_string(), "A simple brass key".to_string(), current_key);
+                let mut keys_to_place = vec![door_key]; // used when returning from this function call
+                let mut keys_to_add = vec![];           // used to collect keys 'bubbled' up from other build calls
                 let mut current_key  = current_key + 1;
-                let connector = MazePath::Connector{ door: door, containers: vec![], other_rooms: {
+                
+                let mut connector = MazePath::Connector{ door: door, containers: containers::Container::generate(), other_rooms: {
                     let mut rooms = vec![];
                     println!("Attached room count: {}", attached_room_count);
                     for room_num in (0..attached_room_count + 1) {
@@ -148,24 +155,42 @@ impl MazePath {
                             };
                             
                         rooms_left -= rooms_here;
-                        match build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, key_here_chance, current_key) {
-                            (room, key_id, keys) => {
-                                rooms.push(room);
-                                current_key = key_id;
-                                for key in keys {
-                                    keys_to_add.push(key);
-                                }
-                            }
-                        }
+                        let (room, key_id, keys) = build(rooms_here
+                                                         , exit_here && room_num == branch_with_exit
+                                                         , max_rooms_attached
+                                                         , key_here_chance
+                                                         , current_key); 
+                        rooms.push(room);
+                        current_key = key_id;
+                        for key in keys {
+                            println!("Found key! pushing to keys_to_add!");
+                            
+                            keys_to_add.push(key);
+                        }                                                
                         //rooms.push(build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key))
                     }
                     rooms
                 }};
-                (connector, current_key, keys_to_add)
+                match connector {
+                    MazePath::Connector { containers: ref mut cs, .. } => {
+                        for key in keys_to_add {
+                            match MazePath::try_place_key(key_here_chance, key, cs) {
+                                Some(k) => { println!("Pushing key in previous room!"); keys_to_place.push(k)},
+                                None    => println!("Placed key in connector!")
+                            };
+                        }
+                    }
+                    _ => panic!("Something has gone horribly wrong in a pattern match insize mazepath")
+                };
+                
+                println!("Keys to place in previous rooms: {}", keys_to_place.len());
+                (connector, current_key, keys_to_place)
             }
         }
         let (path, _, keys) = build(additional_rooms, true, &max_rooms_attached, &key_here_chance, current_key);
+        println!("Num keys in initial room: {}", keys.len());
         (path, keys)
+            
     }
 
     /// Rolls a 1d100 to see if the key is in this room, and places it here if possible. Otherwise, it returns None. 

@@ -13,7 +13,7 @@ pub enum Key {
     Password { id: u32, used: bool } 
 }
 
-impl<'a> Describable for Key {
+impl Describable for Key {
     fn print_name(&self) { 
         match self {
             &Key::Key{ name: ref name, .. } => utils::printer(name),

@@ -14,10 +14,13 @@ pub trait Searchable<T: Describable> {
     fn search(&self) {
         let items : Vec<T> = self.items();
         if items.len() > 0 {
-            println!("You see:")
+            println!("You see:");
+            for item in items {
+                item.print_name()
+            }                
         }
-        for item in items {
-            item.print_name()
+        else {
+            println!("There is nothing here.")
         }
     }
 }

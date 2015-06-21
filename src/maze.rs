@@ -72,23 +72,16 @@ impl<'a> Maze<'a> {
                 _ => {
                     commands.remove(0);
                     let mut init_str = commands.remove(0);
-                    let item_name = commands.iter().fold(init_str.to_string(), |acc, w| acc + w);
+                    let item_name = commands.iter().fold(init_str.to_string(), |acc, w| acc + " " + w); // this seems like a super backwards way of doing 
                     
                     let cs = match self.player.pos {
                         None => self.start.items(),
                         Some(r) => r.items()
                     };
-                    println!("Item to search: {}", item_name);
                     for c in &cs {
-                        println!("Item name: {}", c.name());
-                        if c.name() == item_name {
-                            println!("Going to search!");
+                        if c.name() == item_name.trim() {
                             c.search();
-                            println!("Searched!");
                             break
-                        }
-                        else {
-                            println!("Cmd len: {}, nam len: {}", item_name.len(), c.name().len());
                         }
                     }
                     false

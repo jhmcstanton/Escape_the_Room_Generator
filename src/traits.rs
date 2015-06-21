@@ -1,6 +1,14 @@
+use utils;
+
 pub trait Describable {
-    fn print_name(&self) ;
-    fn print_desc (&self) ;
+    fn name(&self) -> String;
+    fn desc(&self) -> String;
+    fn print_name(&self) {
+        utils::printer(&self.name())
+    }
+    fn print_desc (&self) {
+        utils::printer(&self.desc())
+    }
 }
 
 pub trait Breakable {
@@ -23,4 +31,15 @@ pub trait Searchable<T: Describable> {
             println!("There is nothing here.")
         }
     }
+
+    /*
+    There is no good way to do this with the existing function for items. If it returned a reference to a vector 
+    (not actually possible for all structs in use) then this would be easy, otherwise this is not going to be writable.
+    possible solution: 
+    rewrite structs for containers to use an either and a single vector for keys and items
+     */
+    /*
+    fn take(&mut self, item_name: String) -> T { 
+        
+    }*/
 }

@@ -227,12 +227,11 @@ impl Container {
 }
 
 impl Describable for Container {
-    fn print_name(&self) {
-        utils::printer(self.name())
+    fn name(&self) -> String {
+        self.name().to_string()
     }
-
-    fn print_desc(&self) {
-        utils::printer(self.desc())
+    fn desc(&self) -> String {
+        self.desc().to_string()
     }
 }
 
@@ -254,11 +253,11 @@ impl Breakable for Container {
 }
 
 impl Describable for Computer {
-    fn print_name(&self) {
-        utils::printer(&self.name)
+    fn name(&self) -> String {
+        self.name.to_string()
     }
-    fn print_desc(&self) {
-        utils::printer(&self.desc)
+    fn desc(&self) -> String {
+        self.desc.to_string()
     }
 }
 

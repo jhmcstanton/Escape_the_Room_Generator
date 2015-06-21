@@ -26,6 +26,19 @@ pub enum Either<A, B> {
 }
 
 impl<A: Describable, B: Describable> Describable for Either<A, B> {
+    fn name(&self) -> String{
+        match self {
+            &Either::Left(ref a)  => a.name(),
+            &Either::Right(ref b) => b.name()
+        }
+    }
+    fn desc(&self) -> String {
+        match self {
+            &Either::Left(ref a) => a.desc(),
+            &Either::Right(ref b) => b.desc()
+        }
+    }
+    /*
     fn print_name(&self) {
         match self {
             &Either::Left(ref a)  => a.print_name(),
@@ -37,7 +50,7 @@ impl<A: Describable, B: Describable> Describable for Either<A, B> {
             &Either::Left(ref a)  => a.print_desc(),
             &Either::Right(ref b) => b.print_desc()
         }
-    }
+    }*/
 }
 
 pub type Possibly<A, B> = Option<Either<A, B>>;

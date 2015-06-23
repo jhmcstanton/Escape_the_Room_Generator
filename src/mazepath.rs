@@ -9,7 +9,7 @@ use std::io::Write;
 use items;
 use containers;
 use utils;
-use utils::{Either};
+use utils::{Either, Possibly};
 use traits::{Describable, Searchable, Breakable};
 use player::Player;
 
@@ -40,6 +40,15 @@ impl InitialRoom {
             };
         }
         InitialRoom { containers: containers }
+    }
+
+    pub fn take_from(&mut self, container_name: String, item_name:String) ->  Possibly<items::Item, items::Key> {
+        for container in &mut self.containers {
+            if container.name()  == container_name {
+                return container.take(item_name)
+            }
+        }
+        None
     }
 }
 
@@ -91,6 +100,23 @@ impl MazePath {
             &MazePath::Room      { containers: ref cs, .. } => cs,
             &MazePath::Exit      { containers: ref cs, .. } => cs
         }
+    }
+
+    fn mut_containers(&mut self) -> &mut Vec<containers::Container> {
+        match self {
+            &mut MazePath::Connector { containers: ref mut cs, .. } => cs,
+            &mut MazePath::Room      { containers: ref mut cs, .. } => cs,
+            &mut MazePath::Exit      { containers: ref mut cs, .. } => cs
+        }
+    }
+
+    pub fn take_from(&mut self, container_name: String, item_name:String) -> Possibly<items::Item, items::Key> {
+        for container in self.mut_containers() {
+            if container.name()  == container_name {
+                return container.take(item_name)
+            }
+        }
+        None
     }
     
     pub fn new(additional_rooms: u32) -> (MazePath, Vec<items::Key>){
@@ -239,7 +265,7 @@ impl MazePath {
 impl Searchable<containers::Container> for InitialRoom {
     fn items(&self) -> Vec<containers::Container> {
         self.containers.clone() 
-    }
+    }    
 }
 
 impl Searchable<containers::Container> for MazePath {
@@ -250,4 +276,5 @@ impl Searchable<containers::Container> for MazePath {
             &MazePath::Exit { containers: ref cs, .. } => cs.clone()
         }
     }
+
 }

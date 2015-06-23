@@ -4,10 +4,10 @@ use mazepath;
 
 pub struct Player<'a> {
     name: String,
-    keys: Vec<&'a items::Key>,
-    items: Vec<&'a items::Item>,
-    pub pos  : Option<&'a mazepath::MazePath>,
-    pub previous_room: Option<&'a mazepath::MazePath>
+    keys: Vec<items::Key>,
+    items: Vec<items::Item>,
+    pub pos: Option<&'a mut mazepath::MazePath>,
+    pub previous_room: Option<&'a mut mazepath::MazePath>
 }
 
 impl<'a> Player<'a> {
@@ -15,16 +15,25 @@ impl<'a> Player<'a> {
         Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
     }
 
-    pub fn traverse(&mut self, next_room: &'a mazepath::MazePath) {
-        self.previous_room = self.pos;
-        self.pos = Option::Some(next_room);
+   pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
+       // CURRENTLY NOT MAINTAINING PREVIOUS ROOM
+       /*match self.pos {
+           None => {
+               self.previous_room = None;
+           }
+           Some(ref mut r) => {
+               self.previous_room = Some(r);
+           }
+       }*/
+       self.pos = next_room;
+
     }
 
-    pub fn add_key(&mut self, key: &'a items::Key) {
+    pub fn add_key(&mut self, key: items::Key) {
         self.keys.push(key); 
     }
 
-    pub fn add_item(&mut self, item: &'a items::Item) {
+    pub fn add_item(&mut self, item: items::Item) {
         self.items.push(item);
     }
 

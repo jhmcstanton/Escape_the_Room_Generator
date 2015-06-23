@@ -32,14 +32,4 @@ pub trait Searchable<T: Describable> {
         }
     }
 
-    /*
-    There is no good way to do this with the existing function for items. If it returned a reference to a vector 
-    (not actually possible for all structs in use) then this would be easy, otherwise this is not going to be writable.
-    possible solution: 
-    rewrite structs for containers to use an either and a single vector for keys and items
-     */
-    /*
-    fn take(&mut self, item_name: String) -> T { 
-        
-    }*/
 }

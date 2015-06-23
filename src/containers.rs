@@ -5,7 +5,6 @@ use std::io::BufReader;
 use std::io::BufRead;
 use std::fs::File;
 use std::collections::HashMap;
-use std::convert::AsRef;
 
 use traits::{Searchable, Breakable, Describable};
 use items;
@@ -201,6 +200,97 @@ impl Container {
             }
         }
     }
+
+    pub fn take(&mut self, item_name: String) -> Option<Either<items::Item, items::Key>> {
+        match *self {
+            Container::DurableSmall { item: ref mut op, .. } => {
+                let found_item = match *op {
+                    None => None,
+                    Some(ref mut item) if item.name() == item_name => Some(item.clone()),
+                    _ => None
+                };
+                match found_item { 
+                    None => None,
+                    Some(_) => {
+                        *op = None;
+                        found_item
+                    }
+                }
+            }
+            Container::FragileSmall { item: ref mut op, .. } => {
+                let found_item = match *op {
+                    None => None,
+                    Some(ref mut item) if item.name() == item_name => Some(item.clone()),
+                    _ => None
+                };
+                match found_item { 
+                    None => None,
+                    Some(_) => {
+                        *op = None;
+                        found_item
+                    }
+                }
+            }
+            Container::Bed { item: ref mut op, .. } => {
+                let found_item = match *op {
+                    None => None,
+                    Some(ref mut item) if item.name() == item_name => Some(item.clone()),
+                    _ => None
+                };
+                match found_item { 
+                    None => None,
+                    Some(_) => {
+                        *op = None;
+                        found_item
+                    }
+                }
+            } 
+            Container::Large { items: ref mut items, .. } => {
+                let index = items.iter()
+                    .enumerate()
+                    .fold(None, |index_acc, pair| { 
+                        match (index_acc, pair) {
+                            (Some(_), _ ) => index_acc,
+                            (None, (cur_idx, item)) => {
+                                if item.name() == item_name {
+                                    Some(cur_idx)
+                                }
+                                else {
+                                    None
+                                }
+                            }
+                        }
+                    });
+                match index {
+                    Some(idx) => Some(items.remove(idx)),
+                    None      => None
+                }
+            }
+         
+            Container::Desk { items: ref mut items, .. } => {
+                let index = items.iter()
+                    .enumerate()
+                    .fold(None, |index_acc, pair| { 
+                        match (index_acc, pair) {
+                            (Some(_), _ ) => index_acc,
+                            (None, (cur_idx, item)) => {
+                                if item.name() == item_name {
+                                    Some(cur_idx)
+                                }
+                                else {
+                                    None
+                                }
+                            }
+                        }
+                    });
+                match index {
+                    Some(idx) => Some(items.remove(idx)),
+                    None      => None
+                }
+            }
+        }
+    }
+                          
 }
 
 impl Describable for Container {

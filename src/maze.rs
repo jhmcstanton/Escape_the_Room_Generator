@@ -25,7 +25,7 @@ impl<'a> Maze<'a> {
 
     pub fn help(&self) {
         println!("{}", "Commands:\n\tmove <room number or back> (move 0 and back are equivalent)\n\tinspect <container or room>".to_string() + 
-                 "\n\ttake <container>;<item>\n\tbreak <item>\n\thelp \n\tquit") // Lol, I need to stop programming in the middle of the night
+                 "\n\ttake <container>:<item>\n\tbreak <item>\n\tlist items\n\tlist keys\n\thelp \n\tquit") // Lol, I need to stop programming in the middle of the night
     }
 
     pub fn take_input(&mut self) -> bool {
@@ -41,10 +41,18 @@ impl<'a> Maze<'a> {
             match commands[0] {
                 "quit" => { println!("You'll be back sooner or later"); true },
                 "help" => { self.help(); false },
-                "inspect" => { // this is really gross..
-                    self.inspect(commands)  
-                }
+                "inspect" => self.inspect(commands),
                 "take"    => self.take(commands),
+                "list"    => {
+                    if commands.len() > 1 {
+                        match commands[1] {
+                            "items" => self.player.list_items(),
+                            "keys"  => self.player.list_keys(),
+                            _       => ()
+                        }
+                    }
+                    false 
+                }
                 s      => self.bad_cmd("Try that one again, chief")
             }
         }
@@ -101,20 +109,27 @@ impl<'a> Maze<'a> {
     
     fn take(&mut self, cmds: Vec<&str>) -> bool {
         let command = self.fold_cmds(cmds);
-        let tmp_iter : Vec<_>= command.split(";").collect();        
-        let (container, item_name) = (tmp_iter[0].to_string(), tmp_iter[1].to_string());
-        println!("Container: {}, item: {}", container, item_name);
+        let tmp_iter : Vec<_>= command.split(":").collect();        
+        let container = tmp_iter[0];
+        let item_name = tmp_iter[1].trim();
         let item = match self.player.pos {
             None    => self.start.take_from(container, item_name),
             Some(ref mut r) => r.take_from(container, item_name) // cannot borrow mutably and immutably :/
         };
         match item {
-            Some(Either::Left(item)) => self.player.add_item(item),
-            Some(Either::Right(key)) => self.player.add_key(key),
-            None                     => ()
+            Some(Either::Left(item)) => { 
+                println!("You picked up the {}", item.name());
+                self.player.add_item(item);
+            }
+            Some(Either::Right(key)) => { 
+                println!("You picked up the {}", key.name());
+                self.player.add_key(key);
+            }
+            None                     => println!("You dig around, but cannot find the {} in the {}", item_name, container)
         }
         false
     }
+
     
     fn bad_cmd(&self, msg: &str) -> bool {
         utils::printer(msg);

@@ -201,7 +201,8 @@ impl Container {
         }
     }
 
-    pub fn take(&mut self, item_name: String) -> Option<Either<items::Item, items::Key>> {
+    pub fn take(&mut self, item_name: &str) -> Option<Either<items::Item, items::Key>> {
+        let item_name : String = item_name.to_string();
         match *self {
             Container::DurableSmall { item: ref mut op, .. } => {
                 let found_item = match *op {

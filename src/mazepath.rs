@@ -33,18 +33,20 @@ impl InitialRoom {
         let mut containers = containers::Container::generate();
         // forcing a desk *should* make all keys insert as expected, since it can hold any number of keys
         containers.push(containers::Container::mk_desk()); 
-        for key in keys {
-            match MazePath::try_place_key(&100, key, &mut containers) {
-                Some(k) => panic!("Unable to place all keys in initial room! Please restart!"),
-                None    => ()
-            };
+        for key in keys {            
+//            loop {
+                match MazePath::try_place_key(&75, key, &mut containers) {
+                    Some(_) => panic!("Unable to place all keys in initial room! Please restart!"),
+                    None    => ()
+                };
+  //          }
         }
         InitialRoom { containers: containers }
     }
 
-    pub fn take_from(&mut self, container_name: String, item_name:String) ->  Possibly<items::Item, items::Key> {
+    pub fn take_from(&mut self, container_name: &str, item_name: &str) ->  Possibly<items::Item, items::Key> {
         for container in &mut self.containers {
-            if container.name()  == container_name {
+            if &container.name()  == container_name {
                 return container.take(item_name)
             }
         }
@@ -110,9 +112,9 @@ impl MazePath {
         }
     }
 
-    pub fn take_from(&mut self, container_name: String, item_name:String) -> Possibly<items::Item, items::Key> {
+    pub fn take_from(&mut self, container_name: &str, item_name: &str) -> Possibly<items::Item, items::Key> {
         for container in self.mut_containers() {
-            if container.name()  == container_name {
+            if &container.name()  == container_name {
                 return container.take(item_name)
             }
         }

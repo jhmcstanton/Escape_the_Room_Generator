@@ -24,6 +24,7 @@ pub struct Exit {
     id: u32
 }
 
+
 pub struct InitialRoom{
     containers: Vec<containers::Container>,
 }
@@ -90,7 +91,7 @@ impl Door {
     pub fn new<'a>(key_name: String, key_desc: String, key_id: u32) -> (Door, items::Key) { 
         (Door { locked: true, id: 0 }, items::Key::Key{name: key_name, description: key_desc, id: key_id})
     }
-    fn open(&self) -> bool {
+    fn locked(&self) -> bool {
         self.locked
     }
 }

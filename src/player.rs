@@ -38,11 +38,11 @@ impl<'a> Player<'a> {
     }
 
     pub fn list_keys(&self) {
-        self.keys.iter().map(|k| k.print_name());
+        let _: Vec<_> = self.keys.iter().map(|k| k.print_name()).collect();        
     }
 
     pub fn list_items(&self) {
-        self.items.iter().map(|i| i.print_name());
+        let _: Vec<_> = self.items.iter().map(|i| i.print_name()).collect();
     }
 
     // Lists both items and keys, may be useful for the UI

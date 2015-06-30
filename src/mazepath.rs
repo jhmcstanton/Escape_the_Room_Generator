@@ -16,7 +16,7 @@ use player::Player;
 
 pub struct Door {
     locked: bool,
-    id : u32,
+    id: u32,
 }
 
 pub struct Exit {
@@ -55,20 +55,23 @@ impl InitialRoom {
     }
 }
 
-pub enum MazePath {
+pub enum MazePath<'a> {
     Room {
         door: Door,
-        containers: Vec<containers::Container>
+        containers: Vec<containers::Container>,
+        parent: Option<&'a MazePath<'a>>
     },
     Connector {
         door: Door,
-        other_rooms: Vec<MazePath>,
-        containers: Vec<containers::Container>
+        other_rooms: Vec<MazePath<'a>>,
+        containers: Vec<containers::Container>,
+        parent: Option<&'a MazePath<'a>>
     },
     Exit {
         entrance: Door,
         exit: Exit,
-        containers: Vec<containers::Container>
+        containers: Vec<containers::Container>,
+        parent: Option<&'a MazePath<'a>>
     }
 }
 
@@ -96,7 +99,7 @@ impl Door {
     }
 }
 
-impl MazePath {
+impl<'a> MazePath<'a> {
     pub fn containers(&self) -> &Vec<containers::Container> {
         match self {
             &MazePath::Connector { containers: ref cs, .. } => cs,
@@ -122,108 +125,110 @@ impl MazePath {
         None
     }
     
-    pub fn new(additional_rooms: u32) -> (MazePath, Vec<items::Key>){
+    pub fn new(additional_rooms: u32) -> (MazePath<'a>, Vec<items::Key>){
         let max_rooms_attached = 3;
         let key_here_chance = 50;
-        let current_key = 0;
-        let container_generator = containers::ContainerStringGenerator::new();
+        let mut current_key = 0;
+        let container_generator = containers::ContainerStringGenerator::new();        
         // This needs to return a tuple at some point so key requirements can bubble back up and not be tied to the room they are in
         // This feels waay too long. Maybe this can be broken into 3 functions: single room, exit, and connector constructors, with this function call them
-        fn build<'a>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'a u32, key_here_chance: &'a u32, current_key: u32) -> (MazePath, u32, Vec<items::Key>) {
+        fn build<'a: 'b, 'b>(additional_rooms: u32, exit_here: bool, max_rooms_attached: &'b u32, key_here_chance: &'b u32, current_key:&'b mut u32, parent: Option<&'a MazePath<'a>>, keys_to_place: &'b mut Vec<items::Key>) -> MazePath<'a> {
+            *current_key = *current_key + 1; // There is a minimum of 1 door to add when this function is called
             if additional_rooms == 0 {
                 let mut containers = containers::Container::generate();
-                let (door, door_key) = Door::new("Silver key".to_string(), "A simple key for a simple lock.".to_string(), current_key);
-                let mut keys_to_place = vec![door_key];
+                let (door, door_key) = Door::new("Silver key".to_string(), "A simple key for a simple lock.".to_string(), *current_key);
+                keys_to_place.push(door_key);
                 
                 if exit_here {
                     println!("Exit here!");
                     //let (door, door_key) = Door::new("".to_string(), "".to_string(), current_key + 1);
-                    let (exit, exit_key) = Exit::new("Skeleton key.".to_string(), "A spooky skeleton key.".to_string(), current_key + 2);
-                    
+                    let (exit, exit_key) = Exit::new("Skeleton key.".to_string(), "A spooky skeleton key.".to_string(), *current_key + 2);
+                    *current_key = *current_key + 1;
                     match MazePath::try_place_key(key_here_chance, exit_key, &mut containers) {
                         Some(k) => keys_to_place.push(k),
                         None    => ()
                     };
                     
                     println!("In exit made {} keys.", keys_to_place.len()); //expect 1 or 2
-                    (MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate() }
-                     , current_key + 2, keys_to_place)
+                    MazePath::Exit{ entrance: door, exit: exit, containers: containers::Container::generate(), parent: parent }
                 }
                 else {
                     println!("made a room");
                     println!("In room made {} keys.", keys_to_place.len()); // expect 1
-                    (MazePath::Room { door: door, containers: containers::Container::generate() }, current_key + 1, keys_to_place)
+                    MazePath::Room { door: door, containers: containers::Container::generate(), parent: parent }
                 }
             }
             else {
-                let attached_room_count = rand::thread_rng().gen_range(0, cmp::min(additional_rooms, *max_rooms_attached) + 1);
-                let branch_with_exit = rand::thread_rng().gen_range(0, attached_room_count + 1); // gen_range is exclusive on the RHS, hence the + 1
-                println!("Branch with exit: {}", branch_with_exit);
-                let mut rooms_left = additional_rooms - attached_room_count;
-                let mut rooms_here = 0;
-
-                let (door, door_key) = Door::new("Brass key".to_string(), "A simple brass key".to_string(), current_key);
-                let mut keys_to_place = vec![door_key]; // used when returning from this function call
-                let mut keys_to_add = vec![];           // used to collect keys 'bubbled' up from other build calls
-                let mut current_key  = current_key + 1;
+                let (door, door_key) = Door::new("Brass key".to_string(), "A simple brass key".to_string(), *current_key);
+                keys_to_place.push(door_key);
+                let mut keys_to_add = vec![];     
                 
-                let mut connector = MazePath::Connector{ door: door, containers: containers::Container::generate(), other_rooms: {
-                    let mut rooms = vec![];
-                    println!("Attached room count: {}", attached_room_count);
-                    for room_num in (0..attached_room_count + 1) {
-                        println!("Rooms left to generate: {}", rooms_left);
-
-                        if room_num == branch_with_exit { println!("Making exit branch") }
-                        rooms_here = 
-                            if room_num == attached_room_count {
-                                println!("At end of connector branch, rooms_here: {}", rooms_left);
-                                rooms_left  
-                            }
-                            else {
-                                rand::thread_rng().gen_range(0, rooms_left + 1)
-                            };
-                            
-                        rooms_left -= rooms_here;
-                        let (room, key_id, keys) = build(rooms_here
-                                                         , exit_here && room_num == branch_with_exit
-                                                         , max_rooms_attached
-                                                         , key_here_chance
-                                                         , current_key); 
-                        rooms.push(room);
-                        current_key = key_id;
-                        for key in keys {
-                            println!("Found key! pushing to keys_to_add!");
-                            
-                            keys_to_add.push(key);
-                        }                                                
-                        //rooms.push(build(rooms_here, exit_here && room_num == branch_with_exit, max_rooms_attached, current_key))
-                    }
-                    rooms
-                }};
-                match connector {
-                    MazePath::Connector { containers: ref mut cs, .. } => {
+                let mut connector = MazePath::Connector{ door: door, containers: containers::Container::generate(), parent: parent, other_rooms: vec![]};
+                // need to insert reference to parents ! This should be a SOME not a NONE
+                let other_rooms = mk_other_rooms(None, &additional_rooms, &max_rooms_attached, &key_here_chance, current_key, &exit_here, &mut keys_to_add);
+                
+                connector = match connector {
+                    MazePath::Connector { door: door, containers: mut cs, parent: parent, .. } => {                        
                         for key in keys_to_add {
-                            match MazePath::try_place_key(key_here_chance, key, cs) {
+                            match MazePath::try_place_key(key_here_chance, key, &mut cs) {
                                 Some(k) => { println!("Pushing key in previous room!"); keys_to_place.push(k)},
                                 None    => println!("Placed key in connector!")
                             };
                         }
+                        MazePath::Connector{ door: door, containers: cs, parent: parent, other_rooms: other_rooms }
                     }
-                    _ => panic!("Something has gone horribly wrong in a pattern match insize mazepath")
+                    _ => panic!("Something has gone horribly wrong in a pattern match inside mazepath::connector creation")
                 };
                 
                 println!("Keys to place in previous rooms: {}", keys_to_place.len());
-                (connector, current_key, keys_to_place)
+                connector
             }
         }
-        let (path, _, keys) = build(additional_rooms, true, &max_rooms_attached, &key_here_chance, current_key);
+
+        fn mk_other_rooms<'a: 'b, 'b>(parent_connector: Option<&'a MazePath<'a>>, additional_rooms: &'b u32, max_rooms_attached: &'b u32, key_here_chance: &'b u32, current_key: &'b mut u32, exit_here: &'b bool, keys_to_add: &'b mut Vec<items::Key>) -> Vec<MazePath<'a>> {
+            let attached_room_count = rand::thread_rng().gen_range(0, cmp::min(additional_rooms, max_rooms_attached) + 1);
+            let branch_with_exit = rand::thread_rng().gen_range(0, attached_room_count + 1); // gen_range is exclusive on the RHS, hence the + 1
+            println!("Branch with exit: {}", branch_with_exit);
+            let mut rooms_left = additional_rooms - attached_room_count;
+            let mut rooms_here = 0;
+            
+            let mut rooms = vec![];
+            println!("Attached room count: {}", attached_room_count);
+            for room_num in (0..attached_room_count + 1) {
+                println!("Rooms left to generate: {}", rooms_left);
+                
+                if room_num == branch_with_exit { println!("Making exit branch") }
+                
+                rooms_here = 
+                    if room_num == attached_room_count {
+                        println!("At end of connector branch, rooms_here: {}", rooms_left);
+                        rooms_left  
+                    }
+                    else {
+                        rand::thread_rng().gen_range(0, rooms_left + 1)
+                    };
+                
+                rooms_left -= rooms_here;
+                let child_path = build(rooms_here
+                                       , *exit_here && room_num == branch_with_exit
+                                       , max_rooms_attached
+                                       , key_here_chance
+                                       , current_key
+                                       , parent_connector
+                                       , keys_to_add); 
+                rooms.push(child_path);                                                
+            }
+            rooms
+        }
+        let mut keys = vec![];
+        let path = build(additional_rooms, true, &max_rooms_attached, &key_here_chance, &mut current_key, None, &mut keys);
         println!("Num keys in initial room: {}", keys.len());
         (path, keys)
             
     }
 
     /// Rolls a 1d100 to see if the key is in this room, and places it here if possible. Otherwise, it returns None. 
-    pub fn try_place_key(chance_key_here: &u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
+    pub fn try_place_key<'b>(chance_key_here: &'b u32, key: items::Key, containers: &mut Vec<containers::Container>) -> Option<items::Key> {
         let p : u32 = rand::thread_rng().gen_range(0, 100); 
         if  p < *chance_key_here {
             for container in containers {
@@ -271,7 +276,7 @@ impl Searchable<containers::Container> for InitialRoom {
     }    
 }
 
-impl Searchable<containers::Container> for MazePath {
+impl<'a> Searchable<containers::Container> for MazePath<'a> {
     fn items(&self) -> Vec<containers::Container> {
         match self {
             &MazePath::Room { containers: ref cs, .. } => cs.clone(),

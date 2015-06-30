@@ -2,20 +2,19 @@ use traits::{Describable};
 use items;
 use mazepath;
 
-pub struct Player<'a> {
+pub struct Player<'a: 'b, 'b> {
     name: String,
     keys: Vec<items::Key>,
     items: Vec<items::Item>,
-    pub pos: Option<&'a mut mazepath::MazePath>,
-    pub previous_room: Option<&'a mut mazepath::MazePath>
+    pub pos: Option<&'b mut mazepath::MazePath<'a>>,
 }
 
-impl<'a> Player<'a> {
-    pub fn new(name: String ) -> Player<'a> {
-        Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
+impl<'a: 'b, 'b> Player<'a, 'b> {
+    pub fn new(name: String ) -> Player<'a, 'b> {
+        Player{ name: name, keys: vec![], items: vec![], pos: Option::None }
     }
 
-   pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
+   pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath<'a>>) {
        // CURRENTLY NOT MAINTAINING PREVIOUS ROOM
        /*match self.pos {
            None => {

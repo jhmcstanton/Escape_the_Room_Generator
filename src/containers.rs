@@ -136,6 +136,7 @@ impl Container {
         match ContainerStringGenerator::new().gen.get("desk/") {
             Option::Some(gen) => {
                 let (name, desc) = gen.name_desc_pair();
+                println!("Made a desk! Name: {}, description: {}", &name, &desc);
                 Container::Desk { name: name, description: desc, computer: Option::None, items: vec![] }
             }
             Option::None      => panic!("Could not directly construct desk object! Closing program")

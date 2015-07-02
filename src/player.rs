@@ -2,7 +2,9 @@ use traits::{Describable};
 use items;
 use mazepath;
 
-pub struct Player<'a: 'b, 'b> {
+use std::mem::swap;
+
+pub struct Player<'a> {
     name: String,
     keys: Vec<items::Key>,
     items: Vec<items::Item>,
@@ -14,18 +16,9 @@ impl<'a: 'b, 'b> Player<'a, 'b> {
         Player{ name: name, keys: vec![], items: vec![], pos: Option::None }
     }
 
-   pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath<'a>>) {
-       // CURRENTLY NOT MAINTAINING PREVIOUS ROOM
-       /*match self.pos {
-           None => {
-               self.previous_room = None;
-           }
-           Some(ref mut r) => {
-               self.previous_room = Some(r);
-           }
-       }*/
+    pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
+       swap(&mut self.previous_room, &mut self.pos); 
        self.pos = next_room;
-
     }
 
     pub fn add_key(&mut self, key: items::Key) {

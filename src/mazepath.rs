@@ -95,6 +95,21 @@ impl Door {
     }
 }
 
+impl Describable for Door {
+    fn name(&self) -> String {
+        if self.locked {
+            "A wooden door.".to_string()
+        }
+        else {
+            "A wooden door (Accessed previously).".to_string()
+        }
+            
+    }
+    fn desc(&self) -> String {
+        "Wooden and sturdy.".to_string()
+    }
+}
+
 impl MazePath {
     pub fn containers(&self) -> &Vec<containers::Container> {
         match self {
@@ -260,7 +275,7 @@ impl MazePath {
         else {
             Option::None
         }
-    }
+    }    
     
 }
 

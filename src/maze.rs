@@ -10,15 +10,15 @@ use mazepath::InitialRoom;
 use player::Player;
 use traits::{Searchable, Describable, Breakable};
 
-pub struct Maze<'a: 'b, 'b> {
+pub struct Maze<'a> {
     start: InitialRoom,
-    maze : MazePath<'a>,
-    player: Player<'a, 'b>
+    maze : MazePath,
+    player: Player<'a>
 }
 
 
-impl<'a: 'b, 'b> Maze<'a, 'b> {
-    pub fn new(num_rooms: u32, player_name: String) -> Maze<'a, 'b> {
+impl<'a> Maze<'a> {
+    pub fn new(num_rooms: u32, player_name: String) -> Maze<'a> {
         let (maze_path, keys) = MazePath::new(num_rooms);
         Maze { start: InitialRoom::new(keys), maze: maze_path, player: Player::new(player_name) }
     }
@@ -135,7 +135,7 @@ impl<'a: 'b, 'b> Maze<'a, 'b> {
         utils::printer(msg);
         false
     }
-    fn move_player(&'a mut self, room: Option<&'b mut MazePath<'a>>) {
+    fn move_player(&'a mut self, room: Option<&'a mut MazePath>) {
         self.player.traverse(room);
     }
 }

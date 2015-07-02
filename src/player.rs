@@ -8,17 +8,19 @@ pub struct Player<'a> {
     name: String,
     keys: Vec<items::Key>,
     items: Vec<items::Item>,
-    pub pos: Option<&'b mut mazepath::MazePath<'a>>,
+    pub pos: Option<&'a mut mazepath::MazePath>,
+    pub previous_room: Option<&'a mut mazepath::MazePath>
 }
 
-impl<'a: 'b, 'b> Player<'a, 'b> {
-    pub fn new(name: String ) -> Player<'a, 'b> {
-        Player{ name: name, keys: vec![], items: vec![], pos: Option::None }
+impl<'a> Player<'a> {
+    pub fn new(name: String ) -> Player<'a> {
+        Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
     }
 
     pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
        swap(&mut self.previous_room, &mut self.pos); 
        self.pos = next_room;
+
     }
 
     pub fn add_key(&mut self, key: items::Key) {

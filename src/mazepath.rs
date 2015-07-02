@@ -111,6 +111,13 @@ impl Describable for Door {
 }
 
 impl MazePath {
+    pub fn door(&self) -> &Door {
+        match *self {
+            MazePath::Connector { door: ref door, .. } => door,
+            MazePath::Room { door: ref door, .. } => door,
+            MazePath::Exit { entrance: ref door, .. } => door
+        }
+    }
     pub fn containers(&self) -> &Vec<containers::Container> {
         match self {
             &MazePath::Connector { containers: ref cs, .. } => cs,

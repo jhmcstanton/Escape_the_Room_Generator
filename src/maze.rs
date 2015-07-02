@@ -28,12 +28,15 @@ impl<'a> Maze<'a> {
                  "\n\ttake <container>:<item>\n\tbreak <item>\n\tlist items\n\tlist keys\n\thelp \n\tquit") // Lol, I need to stop programming in the middle of the night
     }
 
-    pub fn take_input(&mut self) -> bool {
+    fn get_console(line : &mut String) -> std::io::Result<usize> { //std::result::Result<usize, std::io::error::Error> {
         print!(">>> "); io::stdout().flush();
-        let mut cmd = String::new();
-        match io::stdin().read_line(&mut cmd) {
+        io::stdin().read_line(line)
+    }
+    pub fn take_input(&mut self) -> bool {
+        let mut cmd : String = String::new();
+        match Maze::get_console(&mut cmd) {
             Result::Err(..) => println!("Hm... that's odd. Try that command again"),
-            Result::Ok(..) => {  }
+            Result::Ok(..) => {  } 
         }
         //cmd.to_lowercase(); // this is an unstable feature in rust, nevertheless it would be nice to have in here
         let commands : Vec<&str> = cmd.split(|c: char| c == ' ' || c == '\n').collect();
@@ -135,7 +138,48 @@ impl<'a> Maze<'a> {
         utils::printer(msg);
         false
     }
-    fn move_player(&'a mut self, room: Option<&'a mut MazePath>) {
-        self.player.traverse(room);
+    
+    fn move_player(&'a mut self) {
+
+        match self.player.pos {
+            None => println!("0) Next room.\n"),
+            Some(&mut MazePath::Connector{ other_rooms: ref other_rooms, .. }) => {
+                for (room, num) in other_rooms.iter().zip(1..other_rooms.len()) {
+                    println!("{}) {}", num, room.door().name());
+                }
+                println!("0) Previous room.");
+            }
+            Some(_) => println!("0) Previous room."),
+        }
+        println!("nah or nm) Stay put.");
+        
+        let mut room_num_str : String = String::new();
+        match Maze::get_console(&mut room_num_str) {
+            Result::Err(..) => { println!("Hm... that's an odd error.. let's stay here"); return () }
+            Result::Ok(..) => {  } 
+        }
+        
+        match (room_num_str.trim(), self.player.pos) { //.is_some()) {
+            ("0", None) => self.player.traverse(Some(&mut self.maze)),
+            ("0", Some(_)) => self.player.traverse(self.player.previous_room),             
+            ("nah", _) => println!("{} did not move rooms.", self.player.name),
+            ("nm", _) => println!("{} did not move rooms.", self.player.name),
+            (n_str, None) => println!("Invalid command for this room."),
+            (n_str, Some(&mut MazePath::Connector{ other_rooms: ref mut other_rooms, .. })) => {
+                match n_str.parse::<u32>() {                    
+                    Err(_) => println!("Invalid room number input, not moving"),
+                    Ok(num) if num > 0 && num < other_rooms.len() as u32 => {
+                        for (room, room_num) in other_rooms.iter_mut().zip(1..other_rooms.len() as u32){
+                            if num == room_num {
+                                self.player.traverse(Some(room));
+                                break;
+                            }
+                        }
+                    }
+                    Ok(_) => println!("Uuhh... what? You're not moving anywhere.")
+                }
+            }
+            _ => println!("Weird.. You're not going anywhere like that.")
+        }
     }
 }

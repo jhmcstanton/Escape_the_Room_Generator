@@ -5,7 +5,7 @@ use mazepath;
 use std::mem::swap;
 
 pub struct Player<'a> {
-    name: String,
+    pub name: String,
     keys: Vec<items::Key>,
     items: Vec<items::Item>,
     pub pos: Option<&'a mut mazepath::MazePath>,

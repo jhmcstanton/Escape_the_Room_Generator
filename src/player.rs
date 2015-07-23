@@ -1,5 +1,6 @@
 use traits::{Describable};
 use items;
+use utils::Movement;
 use mazepath;
 
 use std::mem::swap;
@@ -17,11 +18,33 @@ impl<'a> Player<'a> {
         Player{ name: name, keys: vec![], items: vec![], pos: Option::None, previous_room: Option::None }
     }
 
-    pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
+    pub fn traverse(&'a mut self, movement: Movement) {
+        swap(&mut self.previous_room, &mut self.pos);
+        match movement {
+            Movement::Previous            => (),
+            Movement::Forward(room_index) => {
+                match self.previous_room {
+                    Some(&mut mazepath::MazePath::Connector{ other_rooms: ref mut rooms, .. }) => {
+                        if rooms.len() > (room_index as usize) && room_index >= 0 {
+                            self.pos = Some(&mut rooms[room_index as usize])
+                        }
+                        else {
+                            panic!("Invalid room index! Bad check by caller to player.traverse")
+                        }
+                    }
+                    _ => {
+                        panic!("Incorrect room for indexing in player.traverse!")
+                    }
+                }
+            }
+        }
+    }
+    
+/*    pub fn traverse(&'a mut self, next_room: Option<&'a mut mazepath::MazePath>) {
        swap(&mut self.previous_room, &mut self.pos); 
        self.pos = next_room;
 
-    }
+    }*/
 
     pub fn add_key(&mut self, key: items::Key) {
         self.keys.push(key); 

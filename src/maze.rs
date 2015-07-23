@@ -4,7 +4,7 @@ use std::io;
 use std::io::Write;
 
 use utils;
-use utils::{ Either };
+use utils::{ Either, Movement };
 use mazepath::MazePath;
 use mazepath::InitialRoom;
 use player::Player;
@@ -158,8 +158,25 @@ impl<'a> Maze<'a> {
             Result::Err(..) => { println!("Hm... that's an odd error.. let's stay here"); return () }
             Result::Ok(..) => {  } 
         }
+
+        match (room_num_str.trim()) {
+            "0"   => self.player.traverse(Movement::Previous), 
+            "nah" => println!("{} did not move rooms.", self.player.name),
+            "nm" => println!("{} did not move rooms.", self.player.name),
+            n_str => {
+                let valid_cmd = match self.player.pos {
+                    Some(&mut MazePath::Connector{..}) => true,
+                    _                                  => false
+                };
+                match (valid_cmd, n_str.parse::<u32>()) {
+                    (false, _) => println!("Invalid command for this room dude."),
+                    (_, Err(_)) => println!("Uuuuh, what was that?"),
+                    (true, Ok(num)) => self.player.traverse(Movement::Forward(num))
+                }
+            }
+        }
         
-        match (room_num_str.trim(), self.player.pos) { //.is_some()) {
+        /*match (room_num_str.trim(), self.player.pos) { //.is_some()) {
             ("0", None) => self.player.traverse(Some(&mut self.maze)),
             ("0", Some(_)) => self.player.traverse(self.player.previous_room),             
             ("nah", _) => println!("{} did not move rooms.", self.player.name),
@@ -180,6 +197,6 @@ impl<'a> Maze<'a> {
                 }
             }
             _ => println!("Weird.. You're not going anywhere like that.")
-        }
+        }*/
     }
 }

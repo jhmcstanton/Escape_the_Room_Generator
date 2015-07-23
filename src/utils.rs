@@ -55,6 +55,11 @@ impl<A: Describable, B: Describable> Describable for Either<A, B> {
 
 pub type Possibly<A, B> = Option<Either<A, B>>;
 
+pub enum Movement {
+    Previous,
+    Forward(u32)
+}
+
 pub enum WordClass {
     Noun(String),
     //Pronoun(String),
